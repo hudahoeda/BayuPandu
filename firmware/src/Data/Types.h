@@ -3,6 +3,22 @@
 
 #include <cstdint>
 
+// Represents the overall system state.
+enum class SystemState {
+    INITIALIZING,
+    READY,
+    FLIGHT_ACTIVE,
+    LOW_POWER,
+    ERROR
+};
+
+// Represents the actions that can be triggered by a button press.
+enum class ButtonAction {
+    NONE,
+    SHORT_PRESS,
+    LONG_PRESS
+};
+
 // Represents the current state of the flight.
 enum class FlightState {
     GROUND,
