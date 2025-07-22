@@ -60,7 +60,7 @@ public:
         volume_ = 100;
         is_tone_active_ = false;
         last_tone_ = {0, 0};
-        last_alert_type_ = AlertType::Startup;
+        last_alert_type_ = AlertType::GPSFix;
         tone_history_.clear();
         alert_history_.clear();
     }
@@ -73,7 +73,7 @@ private:
     uint8_t volume_ = 100;
     bool is_tone_active_ = false;
     ToneEvent last_tone_{0, 0};
-    AlertType last_alert_type_ = AlertType::Startup;
+    AlertType last_alert_type_ = AlertType::GPSFix;
     std::vector<ToneEvent> tone_history_;
     std::vector<AlertType> alert_history_;
 };

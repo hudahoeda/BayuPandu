@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <ArduinoFake.h>
 #include "mocks/MockAudio.h"
 #include "mocks/MockBarometer.h"
 #include "mocks/MockDisplay.h"

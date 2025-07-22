@@ -8,7 +8,7 @@ public:
     enum class AlertType {
         Startup,
         Shutdown,
-        GP SFix,
+        GPSFix,
         Error,
         LowBattery
     };

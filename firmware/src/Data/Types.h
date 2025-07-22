@@ -3,6 +3,14 @@
 
 #include <cstdint>
 
+// Represents the current state of the flight.
+enum class FlightState {
+    GROUND,
+    TAKEOFF,
+    FLYING,
+    LANDED
+};
+
 // A simple 3D vector structure for sensor data.
 struct Vector3 {
     float x = 0.0f;
