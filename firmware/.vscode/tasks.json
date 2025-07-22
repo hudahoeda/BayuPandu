@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "PlatformIO Test Native",
+			"type": "shell",
+			"command": "platformio",
+			"args": [
+				"test",
+				"--environment",
+				"native"
+			],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
