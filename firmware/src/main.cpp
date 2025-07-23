@@ -16,6 +16,7 @@
 #include "Services/ConfigService.h"
 #include "Services/FlightManager.h"
 #include "UI/UserInterface.h"
+#include "UI/InputManager.h"
 #include "HAL/StorageImpl.h"
 #include "UI/LVGLInit.h"
 
@@ -46,6 +47,7 @@ ConfigService* configService = nullptr;
 // Flight Manager and UI
 FlightManager* flightManager = nullptr;
 UserInterface* userInterface = nullptr;
+InputManager* inputManager = nullptr;
 
 void setup() {
 #ifdef ARDUINO
@@ -75,11 +77,16 @@ void setup() {
     *arduino_impl
   );
 
+  // Instantiate Input Manager
+  inputManager = new InputManager(*arduino_impl);
+  inputManager->initPins();
+
   // Instantiate User Interface
   userInterface = new UserInterface(
     *flightManager,
     *configService,
-    *arduino_impl
+    *arduino_impl,
+    *inputManager
   );
 
   // Connect UI to FlightManager
@@ -109,6 +116,7 @@ int main() {
     loop();
   }
   delete userInterface;
+  delete inputManager;
   delete flightManager;
   delete configService;
   delete powerService;

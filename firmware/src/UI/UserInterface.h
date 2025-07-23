@@ -4,6 +4,7 @@
 #include "Services/FlightManager.h"
 #include "Services/ConfigService.h"
 #include "HAL/IArduino.h"
+#include "UI/InputManager.h" // Add InputManager include
 #include "UI/LVGLInit.h"
 #include "lvgl.h"
 #include <memory>
@@ -21,7 +22,8 @@ public:
     UserInterface(
         FlightManager& flightManager,
         ConfigService& configService,
-        IArduino& arduino
+        IArduino& arduino,
+        InputManager& inputManager // Add InputManager to constructor
     );
 
     void initialize();
@@ -43,6 +45,7 @@ private:
     FlightManager& flightManager;
     ConfigService& configService;
     IArduino& arduino;
+    InputManager& inputManager; // Add InputManager member
 
     // LVGL screen objects
     lv_obj_t* mainFlightScreen = nullptr;

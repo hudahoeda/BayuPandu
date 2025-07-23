@@ -24,6 +24,8 @@ public:
     virtual void serialBegin(uint32_t baud) = 0;
     virtual void serialPrint(const char* text) = 0;
     virtual void serialPrintln(const char* text) = 0;
+    virtual int serialAvailable() = 0;
+    virtual int serialRead() = 0;
 
     // Pin definitions
     virtual uint8_t getLedBuiltinPin() = 0;

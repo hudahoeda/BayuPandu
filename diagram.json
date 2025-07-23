@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "author": "GitHub Copilot",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp32",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-ili9341",
+      "id": "display",
+      "top": -100,
+      "left": 200,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_prev",
+      "top": 150,
+      "left": -100,
+      "attrs": {
+        "label": "▲ Config"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_next",
+      "top": 200,
+      "left": -100,
+      "attrs": {
+        "label": "▼ Power"
+      }
+    },
+    {
+      "type": "wokwi-sd-card",
+      "id": "sdcard",
+      "top": 200,
+      "left": 200,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    ["esp32:TX", "$serialMonitor:RX", "green", []],
+    ["esp32:RX", "$serialMonitor:TX", "green", []],
+    ["display:GND", "esp32:GND", "black", []],
+    ["display:VCC", "esp32:5V", "red", []],
+    ["display:CS", "esp32:5", "orange", []],
+    ["display:DC", "esp32:17", "orange", []],
+    ["display:RST", "esp32:16", "orange", []],
+    ["display:SCK", "esp32:18", "orange", []],
+    ["display:MISO", "esp32:19", "orange", []],
+    ["display:MOSI", "esp32:23", "orange", []],
+    ["btn_prev:1", "esp32:GND", "black", []],
+    ["btn_prev:2", "esp32:35", "green", []],
+    ["btn_next:1", "esp32:GND", "black", []],
+    ["btn_next:2", "esp32:0", "green", []],
+    ["sdcard:GND", "esp32:GND", "black", []],
+    ["sdcard:VCC", "esp32:3V3", "red", []],
+    ["sdcard:CS", "esp32:21", "orange", []],
+    ["sdcard:SCK", "esp32:18", "orange", []],
+    ["sdcard:MISO", "esp32:19", "orange", []],
+    ["sdcard:MOSI", "esp32:23", "orange", []]
+  ]
+}

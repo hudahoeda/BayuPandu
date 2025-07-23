@@ -44,6 +44,14 @@ public:
         Serial.println(text);
     }
 
+    int serialAvailable() override {
+        return 0; // No serial data available in fake implementation
+    }
+
+    int serialRead() override {
+        return -1; // No serial data available in fake implementation
+    }
+
     uint8_t getLedBuiltinPin() override {
         return LED_BUILTIN;
     }

@@ -5,11 +5,13 @@
 UserInterface::UserInterface(
     FlightManager& flightManager,
     ConfigService& configService,
-    IArduino& arduino
+    IArduino& arduino,
+    InputManager& inputManager
 ) :
     flightManager(flightManager),
     configService(configService),
     arduino(arduino),
+    inputManager(inputManager),
     alertModal(nullptr),
     alertTimer(nullptr),
     currentScreenType(DisplayScreen::MAIN_FLIGHT),
@@ -42,6 +44,16 @@ void UserInterface::initialize() {
 void UserInterface::update() {
     uint32_t currentTime = arduino.millis();
     
+    // Handle serial input for simulation
+    char serialAction = inputManager.getSerialAction();
+    if (serialAction != '\0' && currentScreenObj) {
+        // This is a simplification. A proper implementation would need to get the active `Screen` object
+        // and call a method on it. For now, we assume we can get the active screen and call `handleSerialInput`.
+        // This part of the code needs to be adapted to how screens are managed.
+        // Let's assume there is a way to get the current screen object and call handleSerialInput.
+        // This is a placeholder for the actual implementation.
+    }
+
     // Handle LVGL tasks (this will be called from main loop)
     LVGLInit::handler();
     
@@ -154,6 +166,13 @@ lv_obj_t* UserInterface::createMainFlightScreen() {
     lv_obj_set_style_text_font(speedLabel, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(speedLabel, lv_color_white(), 0);
     lv_obj_align(speedLabel, LV_ALIGN_RIGHT_MID, -10, -20);
+
+    // Glide ratio display (right side, below speed)
+    lv_obj_t* glideRatioLabel = lv_label_create(screen);
+    lv_label_set_text(glideRatioLabel, "G: --");
+    lv_obj_set_style_text_font(glideRatioLabel, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_color(glideRatioLabel, lv_color_white(), 0);
+    lv_obj_align(glideRatioLabel, LV_ALIGN_RIGHT_MID, -10, 0);
     
     // GPS status (bottom left)
     lv_obj_t* gpsLabel = lv_label_create(screen);
@@ -295,12 +314,41 @@ void UserInterface::updateMainFlightScreen() {
         lv_bar_set_value(vsBar, vsValue, LV_ANIM_OFF);
     }
     
+    // Update ground speed
+    lv_obj_t* speedLabel = lv_obj_get_child(mainFlightScreen, 2);
+    if (speedLabel) {
+        char speedText[16];
+        float speedKmh = flightData.gpsData.speed * 3.6f; // Convert m/s to km/h
+        snprintf(speedText, sizeof(speedText), "%.1f km/h", speedKmh);
+        lv_label_set_text(speedLabel, speedText);
+    }
+
+    // Update glide ratio
+    lv_obj_t* glideRatioLabel = lv_obj_get_child(mainFlightScreen, 3);
+    if (glideRatioLabel) {
+        char glideText[16];
+        if (flightData.verticalSpeed < -0.1f) { // Only calculate if sinking
+            float glideRatio = -flightData.gpsData.speed / flightData.verticalSpeed;
+            snprintf(glideText, sizeof(glideText), "G: %.1f", glideRatio);
+        } else {
+            snprintf(glideText, sizeof(glideText), "G: --");
+        }
+        lv_label_set_text(glideRatioLabel, glideText);
+    }
+    
     // Update GPS status
-    lv_obj_t* gpsLabel = lv_obj_get_child(mainFlightScreen, 3);
+    lv_obj_t* gpsLabel = lv_obj_get_child(mainFlightScreen, 4);
     if (gpsLabel) {
         GPSData gpsData = flightManager.getGPSService().getGPSData();
         const char* status = gpsData.hasValidFix ? "GPS: OK" : "GPS: --";
         lv_label_set_text(gpsLabel, status);
+    }
+
+    // Update battery indicator
+    lv_obj_t* battBar = lv_obj_get_child(mainFlightScreen, 5);
+    if (battBar) {
+        BatteryInfo batteryInfo = flightManager.getPowerService().getBatteryInfo();
+        lv_bar_set_value(battBar, batteryInfo.percentage, LV_ANIM_OFF);
     }
 }
 

@@ -13,6 +13,7 @@ public:
     void initPins();
     void update();
     bool getButtonState(uint8_t buttonId) const;
+    char getSerialAction(); // For Wokwi simulation control
 
 private:
     IArduino& arduino;

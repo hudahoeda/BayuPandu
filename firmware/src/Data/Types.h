@@ -93,4 +93,11 @@ struct SystemConfig {
     uint16_t loggingInterval = 1; // seconds
 };
 
+// Battery information
+struct BatteryInfo {
+    float voltage = 0.0f;
+    int percentage = 0;
+    bool isCharging = false;
+};
+
 #endif // BAYUPANDU_TYPES_H

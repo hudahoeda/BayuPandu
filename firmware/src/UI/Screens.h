@@ -10,11 +10,15 @@ public:
     void onExit() override;
     void update() override;
     void handleInput(ButtonAction action, uint8_t buttonId) override;
+    void handleSerialInput(char serialChar) override;
     
 private:
     void createWidgets();
     void updateFlightData();
     
+    void createSimulationElements();
+    void updateSimulationStatus();
+
     lv_obj_t* screen = nullptr;
     lv_obj_t* altitudeLabel = nullptr;
     lv_obj_t* verticalSpeedBar = nullptr;
@@ -24,6 +28,12 @@ private:
     lv_obj_t* gpsStatusLabel = nullptr;
     lv_obj_t* batteryBar = nullptr;
     lv_obj_t* timeLabel = nullptr;
+
+    // Simulation UI elements
+    lv_obj_t* simBanner = nullptr;
+    lv_obj_t* simFilenameLabel = nullptr;
+    lv_obj_t* simSpeedLabel = nullptr;
+    lv_obj_t* simProgressBar = nullptr;
 };
 
 class NavigationScreen : public Screen {

@@ -1,4 +1,5 @@
 #include "PowerService.h"
+#include "Data/Types.h" // For BatteryInfo
 
 PowerService::PowerService(IPower& power, IAudio& audio, ConfigService& configService, IArduino& arduino)
     : power(power),
@@ -28,6 +29,27 @@ void PowerService::update()
             lastBeep = arduino.millis();
         }
     }
+}
+
+BatteryInfo PowerService::getBatteryInfo() const
+{
+    BatteryInfo info;
+    info.voltage = batteryVoltage;
+    // Simple linear mapping for percentage
+    // Assuming 4.2V is 100% and criticalBatteryLevel is 0%
+    float maxVoltage = 4.2f; 
+    float minVoltage = configService.getConfig().criticalBatteryLevel;
+    
+    if (batteryVoltage >= maxVoltage) {
+        info.percentage = 100;
+    } else if (batteryVoltage <= minVoltage) {
+        info.percentage = 0;
+    } else {
+        info.percentage = (int)(((batteryVoltage - minVoltage) / (maxVoltage - minVoltage)) * 100.0f);
+    }
+    
+    info.isCharging = power.isCharging(); // Assuming IPower has isCharging()
+    return info;
 }
 
 float PowerService::getBatteryVoltage() const

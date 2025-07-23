@@ -44,6 +44,14 @@ public:
         Serial.println(text);
     }
 
+    int serialAvailable() override {
+        return Serial.available();
+    }
+
+    int serialRead() override {
+        return Serial.read();
+    }
+
     uint8_t getLedBuiltinPin() override {
         return LED_BUILTIN;
     }

@@ -25,6 +25,9 @@ public:
     // Called to handle button input
     virtual void handleInput(ButtonAction action, uint8_t buttonId) = 0;
 
+    // Called to handle serial input for simulation
+    virtual void handleSerialInput(char serialChar) {}
+
     Screen(UserInterface& ui, IDisplay& display, FlightManager& flightManager, ConfigService& configService, IArduino& arduino)
         : ui(ui), display(display), flightManager(flightManager), configService(configService), arduino(arduino) {}
 

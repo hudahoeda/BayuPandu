@@ -56,3 +56,10 @@ uint8_t InputManager::getButtonPin(uint8_t buttonId) {
         default: return 0; // Should not happen with MAX_BUTTONS check
     }
 }
+
+char InputManager::getSerialAction() {
+    if (arduino.serialAvailable() > 0) {
+        return (char)arduino.serialRead();
+    }
+    return '\0';
+}

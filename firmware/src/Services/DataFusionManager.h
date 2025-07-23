@@ -18,6 +18,8 @@ public:
     
     // Perform data fusion from all sensors
     void fuseData();
+    // Set fused data directly (e.g., for simulation)
+    void setFusedFlightData(const FlightData& data);
     
     // Get the fused flight data
     FlightData getFusedFlightData() const;

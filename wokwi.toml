@@ -1,0 +1,43 @@
+[wokwi]
+version = 1
+firmware = "firmware/.pio/build/esp32dev/firmware.bin"
+
+[[parts]]
+type = "esp32-devkit-v1"
+id = "esp32"
+rotate = 90
+
+[[parts]]
+type = "tft-ili9341"
+id = "display"
+width = 128
+height = 128
+cs = 5
+dc = 17
+reset = 16
+rotation = 1
+
+[[parts]]
+type = "button"
+id = "btn_prev"
+pin = 35
+label = "▲ Config"
+
+[[parts]]
+type = "button"
+id = "btn_next"
+pin = 0
+label = "▼ Power"
+
+[[parts]]
+type = "sd-card"
+id = "sdcard"
+cs = 21
+path = "documentation/example"
+
+[scripts]
+setup = """
+addVirtualButton("▶⏸", "S", "Simulation Start/Stop", 10, 10);
+addVirtualButton("1x", "1", "Normal Speed", 70, 10);
+addVirtualButton("4x", "4", "4x Speed", 110, 10);
+"""

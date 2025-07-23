@@ -9,13 +9,13 @@ InitializingStateHandler::InitializingStateHandler(FlightManager& manager, IArdu
 }
 
 SystemState InitializingStateHandler::update() {
-    // Try to initialize sensors
-    if (flightManager.initializeSensors()) {
+    // Check if all sensors are healthy and data is valid
+    if (flightManager.areAllSensorsHealthy() && flightManager.isDataValid()) {
         flightManager.getHealthMonitor().clearError();
         return SystemState::READY;
     }
     
-    // Stay in initializing state if sensors fail
+    // Stay in initializing state if sensors are not ready or data is not valid
     return SystemState::INITIALIZING;
 }
 
@@ -132,7 +132,8 @@ SystemState ErrorStateHandler::update() {
     if (currentTime - lastRecoveryAttempt > RECOVERY_ATTEMPT_INTERVAL) {
         lastRecoveryAttempt = currentTime;
         
-        if (flightManager.initializeSensors()) {
+        // Try to recover if sensors are healthy and data is valid
+        if (flightManager.areAllSensorsHealthy() && flightManager.isDataValid()) {
             flightManager.getHealthMonitor().clearError();
             return SystemState::READY;
         }

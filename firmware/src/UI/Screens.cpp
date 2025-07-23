@@ -153,10 +153,55 @@ void MainFlightScreen::createWidgets() {
     lv_obj_align(timeLabel, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_text_color(timeLabel, LVGLHelper::COLOR_TEXT, 0);
     lv_obj_set_style_text_font(timeLabel, &lv_font_montserrat_12, 0);
+
+    createSimulationElements();
 }
 
 void MainFlightScreen::update() {
+    updateSimulationStatus();
     updateFlightData();
+}
+
+void MainFlightScreen::createSimulationElements() {
+    // Create the simulation banner
+    simBanner = lv_obj_create(screen);
+    lv_obj_set_size(simBanner, 128, 20);
+    lv_obj_align(simBanner, LV_ALIGN_TOP_MID, 0, 0);
+    lv_obj_set_style_bg_color(simBanner, lv_color_hex(0xFF0000), 0);
+    lv_obj_add_flag(simBanner, LV_OBJ_FLAG_HIDDEN); // Initially hidden
+
+    // Create the filename label
+    simFilenameLabel = lv_label_create(simBanner);
+    lv_label_set_text(simFilenameLabel, "SIMULATION");
+    lv_obj_align(simFilenameLabel, LV_ALIGN_LEFT_MID, 5, 0);
+
+    // Create the speed label
+    simSpeedLabel = lv_label_create(simBanner);
+    lv_label_set_text(simSpeedLabel, "1x");
+    lv_obj_align(simSpeedLabel, LV_ALIGN_RIGHT_MID, -5, 0);
+
+    // Create the progress bar
+    simProgressBar = lv_bar_create(screen);
+    lv_obj_set_size(simProgressBar, 128, 5);
+    lv_obj_align(simProgressBar, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_bar_set_range(simProgressBar, 0, 100);
+    lv_obj_add_flag(simProgressBar, LV_OBJ_FLAG_HIDDEN); // Initially hidden
+}
+
+void MainFlightScreen::updateSimulationStatus() {
+    if (flightManager.isSimulationActive()) {
+        lv_obj_clear_flag(simBanner, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(simProgressBar, LV_OBJ_FLAG_HIDDEN);
+
+        // Update with actual simulation data
+        // For now, just placeholder text
+        lv_label_set_text(simFilenameLabel, "complex_example_lxn.igc"); 
+        // lv_label_set_text(simSpeedLabel, ...); // Speed control not yet implemented
+        // lv_bar_set_value(simProgressBar, ..., LV_ANIM_OFF); // Progress not yet implemented
+    } else {
+        lv_obj_add_flag(simBanner, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(simProgressBar, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 void MainFlightScreen::updateFlightData() {
@@ -242,6 +287,24 @@ void MainFlightScreen::handleInput(ButtonAction action, uint8_t buttonId) {
             break;
         case 3: // RIGHT button / SELECT
             // Could toggle units or show more info
+            break;
+    }
+}
+
+void MainFlightScreen::handleSerialInput(char serialChar) {
+    switch (serialChar) {
+        case 'S': // Toggle simulation
+            if (flightManager.isSimulationActive()) {
+                flightManager.disableSimulation();
+            } else {
+                flightManager.enableSimulation("complex_example_lxn.igc");
+            }
+            break;
+        case '1':
+            // simulationService.setSpeed(1.0f); // Speed control not yet implemented
+            break;
+        case '4':
+            // simulationService.setSpeed(4.0f); // Speed control not yet implemented
             break;
     }
 }

@@ -21,6 +21,10 @@ void DataFusionManager::fuseData() {
     validateFusedData();
 }
 
+void DataFusionManager::setFusedFlightData(const FlightData& data) {
+    fusedFlightData = data;
+}
+
 FlightData DataFusionManager::getFusedFlightData() const {
     return fusedFlightData;
 }
