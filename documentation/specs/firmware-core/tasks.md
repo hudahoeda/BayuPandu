@@ -171,11 +171,11 @@
     - Create an input driver for the physical buttons
     - Map button presses to LVGL input events
     - _Requirements: 5.4_
-  - [ ] 7.4 Redesign UI screens using LVGL widgets
+  - [X] 7.4 Redesign UI screens using LVGL widgets
     - Reimplement flight, navigation, and settings screens using LVGL objects (labels, charts, etc.)
     - Ensure the new UI is responsive and sunlight-readable
     - _Requirements: 5.1, 5.2, 5.3, 5.6_
-  - [ ] 7.5 Refactor UserInterface class
+  - [x] 7.5 Refactor UserInterface class
     - Replace custom drawing logic with LVGL screen management
     - Handle UI updates through LVGL's event and invalidation system
     - _Requirements: 5.1, 5.2, 5.4, 5.6_

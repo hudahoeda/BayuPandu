@@ -6,10 +6,14 @@
 #include "LVGLInputDriver.h"
 #include "HAL/IArduino.h"
 
+// Forward declaration
+class UserInterface;
+
 class LVGLInit {
 public:
     static bool initialize(IArduino& arduino);
     static void handler();
+    static void setUserInterface(UserInterface* ui);
     
 private:
     static bool initialized;

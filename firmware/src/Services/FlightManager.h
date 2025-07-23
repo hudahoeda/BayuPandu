@@ -13,6 +13,9 @@
 #include "HAL/IArduino.h"
 #include <memory>
 
+// Forward declaration to avoid circular dependency
+class UserInterface;
+
 // FlightManager orchestrates system initialization, updates, and data fusion
 class FlightManager {
 public:
@@ -25,6 +28,9 @@ public:
         IStorage& storage,
         IArduino& arduino
     );
+    
+    // UI Integration
+    void setUserInterface(UserInterface* ui);
     
     // System lifecycle
     bool initialize();
@@ -59,6 +65,9 @@ private:
     ConfigService& configService;
     IStorage& storage;
     IArduino& arduino;
+    
+    // UI Reference
+    UserInterface* userInterface;
     
     // Modular components
     DataFusionManager dataFusion;

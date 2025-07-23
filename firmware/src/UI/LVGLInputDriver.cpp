@@ -1,13 +1,25 @@
 #include "LVGLInputDriver.h"
-#include "lvgl.h" // lv_key_t definitions are usually pulled in by lvgl.h
+#include "UI/UserInterface.h"
+#include "lvgl.h"
 
 LVGLInputDriver::LVGLInputDriver(InputManager& inputManager)
-    : _inputManager(inputManager) {
+    : _inputManager(inputManager), _userInterface(nullptr) {
     // Initialize the LVGL input device driver
     lv_indev_drv_init(&_indev_drv);
     _indev_drv.type = LV_INDEV_TYPE_BUTTON;
     _indev_drv.read_cb = lvgl_indev_read_cb;
     _indev_drv.user_data = this; // Pass 'this' pointer to the static callback
+    
+    // Initialize button state tracking
+    for (int i = 0; i < InputManager::MAX_BUTTONS; i++) {
+        lastButtonState[i] = false;
+        buttonPressTime[i] = 0;
+        longPressTriggered[i] = false;
+    }
+}
+
+void LVGLInputDriver::setUserInterface(UserInterface* ui) {
+    _userInterface = ui;
 }
 
 bool LVGLInputDriver::initialize() {
@@ -36,13 +48,50 @@ void LVGLInputDriver::lvgl_indev_read_cb(lv_indev_drv_t* indev_drv, lv_indev_dat
 
     data->state = LV_INDEV_STATE_RELEASED; // Default to released
 
-    // Iterate through all buttons
+    // Update button states and handle actions
+    driver->updateButtonStates();
+
+    // Iterate through all buttons for LVGL input
     for (uint8_t i = 0; i < InputManager::MAX_BUTTONS; i++) {
         if (driver->_inputManager.getButtonState(i)) {
             data->state = LV_INDEV_STATE_PRESSED;
             data->btn_id = i; // Set the button ID that is currently pressed
             break; // Only one button can be pressed at a time for this simple example
         }
+    }
+}
+
+void LVGLInputDriver::updateButtonStates() {
+    if (!_userInterface) return;
+    
+    uint32_t currentTime = lv_tick_get();
+    const uint32_t LONG_PRESS_TIME = 1000; // 1 second for long press
+    
+    for (uint8_t i = 0; i < InputManager::MAX_BUTTONS; i++) {
+        bool currentState = _inputManager.getButtonState(i);
+        bool lastState = lastButtonState[i];
+        
+        if (currentState && !lastState) {
+            // Button just pressed
+            buttonPressTime[i] = currentTime;
+            longPressTriggered[i] = false;
+        } else if (!currentState && lastState) {
+            // Button just released
+            if (!longPressTriggered[i]) {
+                // Short press
+                _userInterface->handleButtonAction(ButtonAction::SHORT_PRESS, i);
+            }
+            longPressTriggered[i] = false;
+        } else if (currentState && lastState) {
+            // Button held down
+            if (!longPressTriggered[i] && (currentTime - buttonPressTime[i]) >= LONG_PRESS_TIME) {
+                // Long press triggered
+                _userInterface->handleButtonAction(ButtonAction::LONG_PRESS, i);
+                longPressTriggered[i] = true;
+            }
+        }
+        
+        lastButtonState[i] = currentState;
     }
 }
 

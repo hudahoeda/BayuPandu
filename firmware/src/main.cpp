@@ -15,6 +15,7 @@
 #include "Services/PowerService.h"
 #include "Services/ConfigService.h"
 #include "Services/FlightManager.h"
+#include "UI/UserInterface.h"
 #include "HAL/StorageImpl.h"
 #include "UI/LVGLInit.h"
 
@@ -42,8 +43,9 @@ IMUService* imuService = nullptr;
 PowerService* powerService = nullptr;
 ConfigService* configService = nullptr;
 
-// Flight Manager
+// Flight Manager and UI
 FlightManager* flightManager = nullptr;
+UserInterface* userInterface = nullptr;
 
 void setup() {
 #ifdef ARDUINO
@@ -73,13 +75,29 @@ void setup() {
     *arduino_impl
   );
 
+  // Instantiate User Interface
+  userInterface = new UserInterface(
+    *flightManager,
+    *configService,
+    *arduino_impl
+  );
+
+  // Connect UI to FlightManager
+  flightManager->setUserInterface(userInterface);
+  
+  // Connect UI to input system
+  LVGLInit::setUserInterface(userInterface);
+
+  // Initialize systems
   flightManager->initialize();
+  userInterface->initialize();
 }
 
 void loop() {
-  // Handle LVGL tasks
+  // Handle LVGL tasks (this will also handle InputManager updates)
   LVGLInit::handler();
   
+  // Update flight manager (which will update UI)
   flightManager->update();
 }
 
@@ -90,6 +108,7 @@ int main() {
   for (int i = 0; i < 5; i++) {  // Run loop a few times for testing
     loop();
   }
+  delete userInterface;
   delete flightManager;
   delete configService;
   delete powerService;

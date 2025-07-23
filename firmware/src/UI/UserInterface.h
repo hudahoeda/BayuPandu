@@ -3,10 +3,9 @@
 #include "Data/Types.h"
 #include "Services/FlightManager.h"
 #include "Services/ConfigService.h"
-#include "HAL/IDisplay.h"
 #include "HAL/IArduino.h"
-#include "UI/InputManager.h"
-#include "UI/Screen.h"
+#include "UI/LVGLInit.h"
+#include "lvgl.h"
 #include <memory>
 
 enum class DisplayScreen {
@@ -20,7 +19,6 @@ enum class DisplayScreen {
 class UserInterface {
 public:
     UserInterface(
-        IDisplay& display,
         FlightManager& flightManager,
         ConfigService& configService,
         IArduino& arduino
@@ -42,28 +40,28 @@ public:
 
 private:
     // Dependencies
-    IDisplay& display;
     FlightManager& flightManager;
     ConfigService& configService;
     IArduino& arduino;
 
-    // Input management
-    InputManager inputManager;
+    // LVGL screen objects
+    lv_obj_t* mainFlightScreen = nullptr;
+    lv_obj_t* navigationScreen = nullptr;
+    lv_obj_t* settingsScreen = nullptr;
+    lv_obj_t* statusScreen = nullptr;
+    lv_obj_t* errorScreen = nullptr;
+    
+    // Alert management
+    lv_obj_t* alertModal = nullptr;
+    lv_timer_t* alertTimer = nullptr;
 
     // Screen management
     DisplayScreen currentScreenType;
-    std::unique_ptr<Screen> currentScreen;
+    lv_obj_t* currentScreenObj = nullptr;
 
     // UI state
     uint32_t lastUpdate;
-    uint32_t screenTimeout;
     bool displayActive;
-
-    // Alert system
-    char alertMessage[64];
-    uint32_t alertStartTime;
-    uint16_t alertDuration;
-    bool alertActive;
 
     // Screen refresh rates (ms)
     static const uint32_t MAIN_REFRESH_RATE = 500;    // 2 Hz for main flight screen
@@ -71,8 +69,28 @@ private:
     static const uint32_t STATUS_REFRESH_RATE = 2000; // 0.5 Hz for status
     static const uint32_t SETTINGS_REFRESH_RATE = 100; // 10 Hz for responsive settings
 
+    // Screen creation methods
+    lv_obj_t* createMainFlightScreen();
+    lv_obj_t* createNavigationScreen();
+    lv_obj_t* createSettingsScreen();
+    lv_obj_t* createStatusScreen();
+    lv_obj_t* createErrorScreen();
+    
+    // Screen update methods
+    void updateMainFlightScreen();
+    void updateNavigationScreen();
+    void updateSettingsScreen();
+    void updateStatusScreen();
+    void updateErrorScreen();
+    
+    // Alert helpers
+    void createAlert(const char* message, uint16_t durationMs);
+    static void alertTimerCallback(lv_timer_t* timer);
+    
+    // Button event handlers
+    static void buttonEventHandler(lv_event_t* e);
+    
     // Helper methods
-    void activateDisplay();
-    void handleScreenTimeout();
-    void displayAlert();
+    void loadCurrentScreen();
+    bool shouldUpdateScreen();
 };

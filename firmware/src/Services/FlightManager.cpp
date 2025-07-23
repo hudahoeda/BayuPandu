@@ -1,4 +1,5 @@
 #include "FlightManager.h"
+#include "UI/UserInterface.h"
 #include <memory>
 
 FlightManager::FlightManager(
@@ -17,12 +18,17 @@ FlightManager::FlightManager(
     configService(configService),
     storage(storage),
     arduino(arduino),
+    userInterface(nullptr),
     dataFusion(variometerService, gpsService, imuService, arduino),
     healthMonitor(dataFusion, arduino),
     flightLogger(storage),
     currentState(SystemState::INITIALIZING)
 {
     createStateHandlers();
+}
+
+void FlightManager::setUserInterface(UserInterface* ui) {
+    userInterface = ui;
 }
 
 bool FlightManager::initialize() {
@@ -46,6 +52,11 @@ void FlightManager::update() {
     dataFusion.fuseData();
     healthMonitor.update();
     flightLogger.update(getFusedFlightData(), getFlightState());
+    
+    // Update UI if available
+    if (userInterface) {
+        userInterface->update();
+    }
     
     // Check for health-based state transitions
     if (healthMonitor.hasError() && currentState != SystemState::ERROR) {

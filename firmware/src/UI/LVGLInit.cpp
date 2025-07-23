@@ -1,4 +1,5 @@
 #include "LVGLInit.h"
+#include "UI/UserInterface.h"
 #ifdef ARDUINO
 #include "Arduino.h"
 #else
@@ -30,6 +31,12 @@ bool LVGLInit::initialize(IArduino& arduino) {
 
     initialized = true;
     return true;
+}
+
+void LVGLInit::setUserInterface(UserInterface* ui) {
+    if (lvglInputDriver) {
+        lvglInputDriver->setUserInterface(ui);
+    }
 }
 
 void LVGLInit::handler() {
