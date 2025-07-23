@@ -36,10 +36,6 @@ void UserInterface::initialize() {
     display.clear();
     display.setBrightness(config.brightness);
     
-    // Set up input manager callback
-    inputManager.setButtonActionCallback([this](ButtonAction action, uint8_t buttonId) {
-        this->handleButtonAction(action, buttonId);
-    });
     
     // Set initial screen
     setScreen(DisplayScreen::MAIN_FLIGHT);

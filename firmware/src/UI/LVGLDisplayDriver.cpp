@@ -18,8 +18,7 @@
 
 
 LVGLDisplayDriver::LVGLDisplayDriver()
-    : tft(nullptr), pinCS(TFT_CS), pinDC(TFT_DC), pinRST(TFT_RST), width(TFT_WIDTH), height(TFT_HEIGHT), brightness(255),
-      lvglBuffer1(nullptr), lvglBuffer2(nullptr)
+    : lvglBuffer1(nullptr), lvglBuffer2(nullptr), tft(nullptr), pinCS(TFT_CS), pinDC(TFT_DC), pinRST(TFT_RST), width(TFT_WIDTH), height(TFT_HEIGHT), brightness(255)
 {
 }
 
@@ -58,6 +57,7 @@ void LVGLDisplayDriver::showError(const char* message) {
 
 
 void LVGLDisplayDriver::setMode(DisplayMode mode) {
+    (void)mode; // Suppress unused parameter warning
     // Switch between display modes (flight, nav, settings)
     // Implement LVGL screen switching logic here
 }
@@ -123,31 +123,40 @@ void LVGLDisplayDriver::clear() {
 }
 
 void LVGLDisplayDriver::drawUI(const FlightData& data) {
+    (void)data; // Suppress unused parameter warning
     // Legacy method - implement basic flight data display using LVGL
     // This can be a simple implementation for backward compatibility
 }
 
 void LVGLDisplayDriver::setTextSize(uint8_t size) {
+    (void)size; // Suppress unused parameter warning
     // LVGL handles text size through styles, implement if needed
 }
 
 void LVGLDisplayDriver::setCursor(int16_t x, int16_t y) {
+    (void)x; // Suppress unused parameter warning
+    (void)y; // Suppress unused parameter warning
     // LVGL doesn't use cursor concept, but store for legacy compatibility
 }
 
 void LVGLDisplayDriver::print(const char* text) {
+    (void)text; // Suppress unused parameter warning
     // Legacy print method - could create a temporary label
 }
 
 void LVGLDisplayDriver::print(int value) {
+    (void)value; // Suppress unused parameter warning
     // Legacy print method - could create a temporary label
 }
 
 void LVGLDisplayDriver::print(float value, int decimals) {
+    (void)value;    // Suppress unused parameter warning
+    (void)decimals; // Suppress unused parameter warning
     // Legacy print method - could create a temporary label  
 }
 
 void LVGLDisplayDriver::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+    (void)color; // Suppress unused parameter warning - LVGL uses styles instead
     // Create LVGL line object
     lv_obj_t* line = lv_line_create(lv_scr_act());
     static lv_point_t points[2];
@@ -159,6 +168,7 @@ void LVGLDisplayDriver::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 }
 
 void LVGLDisplayDriver::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+    (void)color; // Suppress unused parameter warning - LVGL uses styles instead
     // Create LVGL rectangle object
     lv_obj_t* rect = lv_obj_create(lv_scr_act());
     lv_obj_set_pos(rect, x, y);
@@ -168,6 +178,7 @@ void LVGLDisplayDriver::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uin
 }
 
 void LVGLDisplayDriver::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+    (void)color; // Suppress unused parameter warning - LVGL uses styles instead
     // Create LVGL filled rectangle object
     lv_obj_t* rect = lv_obj_create(lv_scr_act());
     lv_obj_set_pos(rect, x, y);

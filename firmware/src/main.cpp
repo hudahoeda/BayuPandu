@@ -60,7 +60,7 @@ void setup() {
   powerService = new PowerService(power, audio, *configService, *arduino_impl);
 
   // Initialize LVGL
-  LVGLInit::initialize();
+  LVGLInit::initialize(*arduino_impl);
 
   // Instantiate Flight Manager
   flightManager = new FlightManager(

@@ -163,11 +163,11 @@
     - Add LVGL as a dependency in `platformio.ini`
     - Configure LVGL settings for the project
     - _Requirements: 5.7_
-  - [ ] 7.2 Implement LVGL display driver
+  - [X] 7.2 Implement LVGL display driver
     - Create a display driver compatible with the chosen TFT/e-paper display
     - Integrate the driver with the `IDisplay` HAL interface
     - _Requirements: 5.3, 5.5_
-  - [ ] 7.3 Implement LVGL input driver
+  - [x] 7.3 Implement LVGL input driver
     - Create an input driver for the physical buttons
     - Map button presses to LVGL input events
     - _Requirements: 5.4_
@@ -184,6 +184,8 @@
     - Ensure all system alerts and status updates are displayed correctly
     - _Requirements: 5.1, 5.2, 5.6_
   - [ ] 7.7 Implement UI simulation with IGC file replay
+    - Create a simulation using wokwi simulator for rendering the UI and testing the hardware abstraction layer
+    - Implement a mechanism to read IGC files and simulate sensor data
     - Create a simulation mode to feed data from an IGC file to the UI
     - This allows for UI testing and development without physical hardware
     - _Requirements: 10.2, 10.5_

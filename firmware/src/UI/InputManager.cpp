@@ -1,64 +1,49 @@
 #include "InputManager.h"
 
 #include "InputManager.h"
-#include <cstring>
+#include <cstring> // For memset
+
+#ifdef ARDUINO
+#include "Arduino.h"
+#else
+#include <ArduinoFake.h>
+#endif
 
 InputManager::InputManager(IArduino& arduino) 
-    : arduino(arduino), debounceDelay(50), longPressDelay(1000) {
+    : arduino(arduino), debounceDelay(50) {
     // Initialize button states
     memset(buttonStates, 0, sizeof(buttonStates));
-    memset(lastButtonPress, 0, sizeof(lastButtonPress));
-    memset(buttonPressed, false, sizeof(buttonPressed));
+    memset(lastButtonChangeTime, 0, sizeof(lastButtonChangeTime));
+}
+
+void InputManager::initPins() {
+    for (uint8_t i = 0; i < MAX_BUTTONS; i++) {
+        arduino.pinMode(getButtonPin(i), INPUT_PULLUP); // Assuming pull-up resistors
+    }
 }
 
 void InputManager::update() {
     uint32_t currentTime = arduino.millis();
     
     for (uint8_t i = 0; i < MAX_BUTTONS; i++) {
-        bool currentState = arduino.digitalRead(getButtonPin(i));
+        // Read the current state of the button (LOW if pressed, HIGH if not pressed due to pull-up)
+        bool rawState = (arduino.digitalRead(getButtonPin(i)) == LOW); 
         
-        // Handle button state changes
-        if (currentState != buttonStates[i]) {
-            if (currentTime - lastButtonPress[i] > debounceDelay) {
-                buttonStates[i] = currentState;
-                lastButtonPress[i] = currentTime;
-                
-                if (currentState) {
-                    // Button pressed
-                    buttonPressed[i] = true;
-                    buttonPressTime[i] = currentTime;
-                }
-            }
-        }
-        
-        // Check for button releases and long presses
-        if (buttonPressed[i]) {
-            if (!buttonStates[i]) {
-                // Button released
-                uint32_t pressDuration = currentTime - buttonPressTime[i];
-                if (pressDuration >= longPressDelay) {
-                    onButtonAction(ButtonAction::LONG_PRESS, i);
-                } else {
-                    onButtonAction(ButtonAction::SHORT_PRESS, i);
-                }
-                buttonPressed[i] = false;
-            } else if (currentTime - buttonPressTime[i] >= longPressDelay) {
-                // Long press detected (still holding)
-                onButtonAction(ButtonAction::LONG_PRESS, i);
-                buttonPressed[i] = false; // Prevent repeated long press events
+        // Debounce logic
+        if (rawState != buttonStates[i]) {
+            if (currentTime - lastButtonChangeTime[i] > debounceDelay) {
+                buttonStates[i] = rawState;
+                lastButtonChangeTime[i] = currentTime;
             }
         }
     }
 }
 
-void InputManager::setButtonActionCallback(ButtonActionCallback callback) {
-    buttonActionCallback = callback;
-}
-
-void InputManager::onButtonAction(ButtonAction action, uint8_t buttonId) {
-    if (buttonActionCallback) {
-        buttonActionCallback(action, buttonId);
+bool InputManager::getButtonState(uint8_t buttonId) const {
+    if (buttonId >= MAX_BUTTONS) {
+        return false; // Invalid button ID
     }
+    return buttonStates[buttonId];
 }
 
 uint8_t InputManager::getButtonPin(uint8_t buttonId) {
@@ -68,6 +53,6 @@ uint8_t InputManager::getButtonPin(uint8_t buttonId) {
         case 1: return 33; // DOWN button  
         case 2: return 25; // LEFT button
         case 3: return 26; // RIGHT/SELECT button
-        default: return 0;
+        default: return 0; // Should not happen with MAX_BUTTONS check
     }
 }

@@ -19,7 +19,7 @@ public:
     virtual SystemState update() = 0;
     
     // Called to handle events specific to this state
-    virtual void handleEvent(const char* event) {}
+    virtual void handleEvent(const char* event) { (void)event; }
 
 protected:
     SystemStateHandler(IArduino& arduino) : arduino(arduino) {}

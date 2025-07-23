@@ -6,9 +6,11 @@
 #endif
 
 bool LVGLInit::initialized = false;
+InputManager* LVGLInit::inputManager = nullptr;
+LVGLInputDriver* LVGLInit::lvglInputDriver = nullptr;
 static uint32_t lastTick = 0;
 
-bool LVGLInit::initialize() {
+bool LVGLInit::initialize(IArduino& arduino) {
     if (initialized) {
         return true;
     }
@@ -19,25 +21,15 @@ bool LVGLInit::initialize() {
     // Initialize tick tracking
     lastTick = millis();
     
-    // Note: Display driver and input driver will be implemented in tasks 7.2 and 7.3
-    // For now, we just initialize the core LVGL system
+    // Initialize InputManager and LVGLInputDriver
+    inputManager = new InputManager(arduino);
+    inputManager->initPins(); // Initialize button pins
     
+    lvglInputDriver = new LVGLInputDriver(*inputManager);
+    lvglInputDriver->initialize(); // Register LVGL input driver
+
     initialized = true;
     return true;
-}
-
-void LVGLInit::tick() {
-    if (!initialized) {
-        return;
-    }
-    
-    // Manual tick handling since LV_TICK_CUSTOM is disabled
-    uint32_t currentTick = millis();
-    uint32_t elapsed = currentTick - lastTick;
-    if (elapsed > 0) {
-        lv_tick_inc(elapsed);
-        lastTick = currentTick;
-    }
 }
 
 void LVGLInit::handler() {
@@ -45,9 +37,9 @@ void LVGLInit::handler() {
         return;
     }
     
-    // Update tick first
-    tick();
+    // Update InputManager state
+    inputManager->update();
     
-    // Handle LVGL tasks
+    // Handle LVGL tasks (LVGL's custom tick source handles timing)
     lv_timer_handler();
 }
