@@ -1,4 +1,5 @@
 #include "FlightManager.h"
+#include <memory>
 
 FlightManager::FlightManager(
     VariometerService& variometerService,
@@ -102,11 +103,11 @@ bool FlightManager::initializeSensors() {
 // Private methods implementation
 
 void FlightManager::createStateHandlers() {
-    initializingHandler = std::make_unique<InitializingStateHandler>(*this, arduino);
-    readyHandler = std::make_unique<ReadyStateHandler>(*this, arduino);
-    flightActiveHandler = std::make_unique<FlightActiveStateHandler>(*this, arduino);
-    lowPowerHandler = std::make_unique<LowPowerStateHandler>(*this, arduino);
-    errorHandler = std::make_unique<ErrorStateHandler>(*this, arduino);
+    initializingHandler.reset(new InitializingStateHandler(*this, arduino));
+    readyHandler.reset(new ReadyStateHandler(*this, arduino));
+    flightActiveHandler.reset(new FlightActiveStateHandler(*this, arduino));
+    lowPowerHandler.reset(new LowPowerStateHandler(*this, arduino));
+    errorHandler.reset(new ErrorStateHandler(*this, arduino));
     
     // Set initial state handler
     currentStateHandler = getStateHandler(currentState);

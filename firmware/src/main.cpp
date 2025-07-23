@@ -1,3 +1,5 @@
+#include "config.h"
+
 #ifdef ARDUINO
 #include <Arduino.h>
 #include "HAL/ArduinoImpl.h"
@@ -6,7 +8,6 @@
 #include "HAL/ArduinoFakeImpl.h"
 #endif
 
-#include "config.h"
 #include "HAL/IArduino.h"
 #include "Services/VariometerService.h"
 #include "Services/GPSService.h"

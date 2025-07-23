@@ -93,19 +93,19 @@ void UserInterface::setScreen(DisplayScreen screen) {
         // This is where we create a new screen instance
         switch (screen) {
             case DisplayScreen::MAIN_FLIGHT:
-                currentScreen = std::make_unique<MainFlightScreen>(*this, display, flightManager, configService, arduino);
+                currentScreen.reset(new MainFlightScreen(*this, display, flightManager, configService, arduino));
                 break;
             case DisplayScreen::NAVIGATION:
-                currentScreen = std::make_unique<NavigationScreen>(*this, display, flightManager, configService, arduino);
+                currentScreen.reset(new NavigationScreen(*this, display, flightManager, configService, arduino));
                 break;
             case DisplayScreen::SETTINGS:
-                currentScreen = std::make_unique<SettingsScreen>(*this, display, flightManager, configService, arduino);
+                currentScreen.reset(new SettingsScreen(*this, display, flightManager, configService, arduino));
                 break;
             case DisplayScreen::STATUS:
-                currentScreen = std::make_unique<StatusScreen>(*this, display, flightManager, configService, arduino);
+                currentScreen.reset(new StatusScreen(*this, display, flightManager, configService, arduino));
                 break;
             case DisplayScreen::ERROR:
-                currentScreen = std::make_unique<ErrorScreen>(*this, display, flightManager, configService, arduino);
+                currentScreen.reset(new ErrorScreen(*this, display, flightManager, configService, arduino));
                 break;
             default:
                 currentScreen = nullptr;
