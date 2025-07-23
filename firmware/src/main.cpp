@@ -15,6 +15,7 @@
 #include "Services/ConfigService.h"
 #include "Services/FlightManager.h"
 #include "HAL/StorageImpl.h"
+#include "UI/LVGLInit.h"
 
 // Global Arduino abstraction
 IArduino* arduino_impl = nullptr;
@@ -57,6 +58,9 @@ void setup() {
   imuService = new IMUService(imu);
   powerService = new PowerService(power, audio, *configService, *arduino_impl);
 
+  // Initialize LVGL
+  LVGLInit::initialize();
+
   // Instantiate Flight Manager
   flightManager = new FlightManager(
     *variometerService,
@@ -72,6 +76,9 @@ void setup() {
 }
 
 void loop() {
+  // Handle LVGL tasks
+  LVGLInit::handler();
+  
   flightManager->update();
 }
 
