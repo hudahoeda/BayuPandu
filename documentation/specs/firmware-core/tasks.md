@@ -179,11 +179,11 @@
     - Replace custom drawing logic with LVGL screen management
     - Handle UI updates through LVGL's event and invalidation system
     - _Requirements: 5.1, 5.2, 5.4, 5.6_
-  - [ ] 7.6 Update dependent components
+  - [X] 7.6 Update dependent components
     - Modify FlightManager to provide data to the new LVGL UI
     - Ensure all system alerts and status updates are displayed correctly
     - _Requirements: 5.1, 5.2, 5.6_
-  - [ ] 7.7 Implement UI simulation with IGC file replay
+  - [X] 7.7 Implement UI simulation with IGC file replay
     - Create a simulation using wokwi simulator for rendering the UI and testing the hardware abstraction layer
     - Implement a mechanism to read IGC files and simulate sensor data
     - Create a simulation mode to feed data from an IGC file to the UI

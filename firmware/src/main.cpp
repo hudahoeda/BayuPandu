@@ -51,22 +51,42 @@ InputManager* inputManager = nullptr;
 
 void setup() {
 #ifdef ARDUINO
+  Serial.begin(115200);
+  Serial.println("BayuPandu Variometer Starting...");
+  Serial.println("DEBUG: Before arduino_impl instantiation");
   arduino_impl = new ArduinoImpl();
+  Serial.println("DEBUG: After arduino_impl instantiation");
 #else
   arduino_impl = new ArduinoFakeImpl();
 #endif
 
   // Instantiate services
+  Serial.println("Initializing services...");
+  Serial.println("DEBUG: Before ConfigService instantiation");
   configService = new ConfigService(storage);
+  Serial.println("DEBUG: After ConfigService instantiation");
+  Serial.println("DEBUG: Before VariometerService instantiation");
   variometerService = new VariometerService(barometer, audio, *arduino_impl);
+  Serial.println("DEBUG: After VariometerService instantiation");
+  Serial.println("DEBUG: Before GPSService instantiation");
   gpsService = new GPSService(gps);
+  Serial.println("DEBUG: After GPSService instantiation");
+  Serial.println("DEBUG: Before IMUService instantiation");
   imuService = new IMUService(imu);
+  Serial.println("DEBUG: After IMUService instantiation");
+  Serial.println("DEBUG: Before PowerService instantiation");
   powerService = new PowerService(power, audio, *configService, *arduino_impl);
+  Serial.println("DEBUG: After PowerService instantiation");
 
   // Initialize LVGL
+  Serial.println("Initializing LVGL...");
+  Serial.println("DEBUG: Before LVGLInit::initialize");
   LVGLInit::initialize(*arduino_impl);
+  Serial.println("DEBUG: After LVGLInit::initialize");
 
   // Instantiate Flight Manager
+  Serial.println("Initializing Flight Manager...");
+  Serial.println("DEBUG: Before FlightManager instantiation");
   flightManager = new FlightManager(
     *variometerService,
     *gpsService,
@@ -76,28 +96,38 @@ void setup() {
     storage,
     *arduino_impl
   );
-
-  // Instantiate Input Manager
-  inputManager = new InputManager(*arduino_impl);
-  inputManager->initPins();
+  Serial.println("DEBUG: After FlightManager instantiation");
 
   // Instantiate User Interface
+  Serial.println("Initializing User Interface...");
+  Serial.println("DEBUG: Before UserInterface instantiation");
   userInterface = new UserInterface(
     *flightManager,
     *configService,
     *arduino_impl,
-    *inputManager
+    *LVGLInit::inputManager
   );
+  Serial.println("DEBUG: After UserInterface instantiation");
 
   // Connect UI to FlightManager
+  Serial.println("DEBUG: Before flightManager->setUserInterface");
   flightManager->setUserInterface(userInterface);
+  Serial.println("DEBUG: After flightManager->setUserInterface");
   
   // Connect UI to input system
+  Serial.println("DEBUG: Before LVGLInit::setUserInterface");
   LVGLInit::setUserInterface(userInterface);
+  Serial.println("DEBUG: After LVGLInit::setUserInterface");
 
   // Initialize systems
+  Serial.println("Initializing systems...");
+  Serial.println("DEBUG: Before flightManager->initialize");
   flightManager->initialize();
+  Serial.println("DEBUG: After flightManager->initialize");
+  Serial.println("DEBUG: Before userInterface->initialize");
   userInterface->initialize();
+  Serial.println("DEBUG: After userInterface->initialize");
+  Serial.println("Initialization complete!");
 }
 
 void loop() {
@@ -108,7 +138,7 @@ void loop() {
   flightManager->update();
 }
 
-#ifndef ARDUINO
+#if !defined(UNIT_TEST)
 // For native testing, provide a main function
 int main() {
   setup();

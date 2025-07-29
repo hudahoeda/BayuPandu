@@ -1,6 +1,6 @@
 #include "InputManager.h"
 
-#include "InputManager.h"
+#include "../config.h"
 #include <cstring> // For memset
 
 #ifdef ARDUINO
@@ -49,10 +49,10 @@ bool InputManager::getButtonState(uint8_t buttonId) const {
 uint8_t InputManager::getButtonPin(uint8_t buttonId) {
     // Map button IDs to GPIO pins - adjust these according to your hardware
     switch (buttonId) {
-        case 0: return 32; // UP button
-        case 1: return 33; // DOWN button  
-        case 2: return 25; // LEFT button
-        case 3: return 26; // RIGHT/SELECT button
+        case 0: return PIN_UP; // UP button
+        case 1: return PIN_DOWN; // DOWN button  
+        case 2: return PIN_ENTER; // ENTER button
+        case 3: return PIN_CANCEL; // CANCEL button
         default: return 0; // Should not happen with MAX_BUTTONS check
     }
 }

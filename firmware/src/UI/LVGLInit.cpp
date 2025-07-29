@@ -1,5 +1,7 @@
 #include "LVGLInit.h"
 #include "UI/UserInterface.h"
+#include "LVGLDisplayDriver.h"
+#include "../config.h"
 #ifdef ARDUINO
 #include "Arduino.h"
 #else
@@ -9,6 +11,7 @@
 bool LVGLInit::initialized = false;
 InputManager* LVGLInit::inputManager = nullptr;
 LVGLInputDriver* LVGLInit::lvglInputDriver = nullptr;
+LVGLDisplayDriver* LVGLInit::displayDriver = nullptr;
 static uint32_t lastTick = 0;
 
 bool LVGLInit::initialize(IArduino& arduino) {
@@ -21,6 +24,12 @@ bool LVGLInit::initialize(IArduino& arduino) {
     
     // Initialize tick tracking
     lastTick = millis();
+    
+    // Initialize display driver first
+    displayDriver = new LVGLDisplayDriver(TFT_CS, TFT_DC, TFT_RST);
+    if (!displayDriver->initialize()) {
+        return false;
+    }
     
     // Initialize InputManager and LVGLInputDriver
     inputManager = new InputManager(arduino);
@@ -48,5 +57,8 @@ void LVGLInit::handler() {
     inputManager->update();
     
     // Handle LVGL tasks (LVGL's custom tick source handles timing)
+    uint32_t now = millis();
+    lv_tick_inc(now - lastTick);
+    lastTick = now;
     lv_timer_handler();
 }

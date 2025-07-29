@@ -71,6 +71,20 @@ public:
         fill_rect_calls_++;
     }
 
+    void updateScreen() override {
+        update_screen_calls_++;
+    }
+
+    void showError(const char* message) override {
+        show_error_calls_++;
+        last_error_message_ = message;
+    }
+
+    void setMode(DisplayMode mode) override {
+        set_mode_calls_++;
+        current_mode_ = mode;
+    }
+
     // --- Inspection Methods ---
     bool wasInitializeCalled() const { return initialize_called_; }
     int getClearCallCount() const { return clear_call_count_; }
@@ -86,6 +100,11 @@ public:
     int getLineCallCount() const { return line_calls_; }
     int getRectCallCount() const { return rect_calls_; }
     int getFillRectCallCount() const { return fill_rect_calls_; }
+    int getUpdateScreenCallCount() const { return update_screen_calls_; }
+    int getShowErrorCallCount() const { return show_error_calls_; }
+    const std::string& getLastError() const { return last_error_message_; }
+    int getSetModeCallCount() const { return set_mode_calls_; }
+    DisplayMode getCurrentMode() const { return current_mode_; }
 
     void reset() {
         initialize_called_ = false;
@@ -121,6 +140,11 @@ private:
     int line_calls_ = 0;
     int rect_calls_ = 0;
     int fill_rect_calls_ = 0;
+    int update_screen_calls_ = 0;
+    int show_error_calls_ = 0;
+    std::string last_error_message_;
+    int set_mode_calls_ = 0;
+    DisplayMode current_mode_ = DisplayMode::Flight;
 };
 
 #endif // MOCK_DISPLAY_H

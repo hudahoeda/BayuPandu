@@ -1,4 +1,7 @@
 #include <ArduinoFake.h>
+#undef round
+#undef abs
+#include <gtest/gtest.h>
 #include "HAL/ArduinoFakeImpl.h"
 
 using namespace fakeit;
@@ -51,7 +54,9 @@ void test_arduino_fake_impl() {
     Verify(OverloadedMethod(ArduinoFake(Serial), println, size_t(const char*)).Using("Line")).Once();
 }
 
-int main() {
-    test_arduino_fake_impl();
-    return 0;
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
+
+

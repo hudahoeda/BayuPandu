@@ -2,9 +2,15 @@
 #include "../HAL/IDisplay.h"
 #include <lvgl.h>
 
+#ifdef ARDUINO
+#include <Adafruit_ILI9341.h>
+#else
+class Adafruit_ILI9341;
+#endif
+
 class LVGLDisplayDriver : public IDisplay {
 public:
-    LVGLDisplayDriver();
+    LVGLDisplayDriver(int8_t cs, int8_t dc, int8_t rst);
     virtual ~LVGLDisplayDriver();
 
     bool initialize() override;
@@ -36,13 +42,8 @@ private:
     lv_color_t* lvglBuffer2;
     lv_disp_drv_t lvglDispDrv;
 
-    // Hardware-specific display object (e.g., Adafruit_ST7789)
-    // Forward declaration to avoid include in header
-#ifdef ARDUINO
-    class Adafruit_ST7789* tft;
-#else
-    void* tft; // Placeholder for native builds
-#endif
+    // Hardware-specific display object
+    Adafruit_ILI9341* tft;
 
     // Pin configuration
     int8_t pinCS;
@@ -58,5 +59,4 @@ private:
 
     void lvglFlushCallback(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p);
     void setupLVGL();
-    void setupDisplayHardware();
 };

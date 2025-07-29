@@ -1,68 +1,124 @@
 {
   "version": 1,
-  "author": "GitHub Copilot",
+  "author": "Bayu Pandu (rewritten by Gemini)",
   "editor": "wokwi",
   "parts": [
     {
-      "type": "wokwi-esp32-devkit-v1",
-      "id": "esp32",
-      "top": 0,
-      "left": 0,
+      "type": "board-esp32-c3-devkitm-1",
+      "id": "esp",
+      "top": 100,
+      "left": 200,
       "attrs": {}
     },
     {
       "type": "wokwi-ili9341",
-      "id": "display",
-      "top": -100,
-      "left": 200,
+      "id": "lcd",
+      "top": -40,
+      "left": 450,
       "attrs": {}
     },
     {
       "type": "wokwi-pushbutton",
-      "id": "btn_prev",
-      "top": 150,
-      "left": -100,
+      "id": "btnEnter",
+      "top": 20,
+      "left": 50,
       "attrs": {
-        "label": "▲ Config"
+        "color": "green",
+        "label": "ENTER"
       }
     },
     {
       "type": "wokwi-pushbutton",
-      "id": "btn_next",
-      "top": 200,
-      "left": -100,
+      "id": "btnCancel",
+      "top": 80,
+      "left": 50,
       "attrs": {
-        "label": "▼ Power"
+        "color": "red",
+        "label": "CANCEL"
       }
     },
     {
-      "type": "wokwi-sd-card",
-      "id": "sdcard",
+      "type": "wokwi-pushbutton",
+      "id": "btnUp",
+      "top": 140,
+      "left": 50,
+      "attrs": {
+        "color": "blue",
+        "label": "UP"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnDown",
       "top": 200,
-      "left": 200,
+      "left": 50,
+      "attrs": {
+        "color": "yellow",
+        "label": "DOWN"
+      }
+    },
+    {
+      "type": "wokwi-ms5611",
+      "id": "baro",
+      "top": -60,
+      "left": 150,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "imu",
+      "top": -60,
+      "left": 250,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-gps-module",
+      "id": "gps",
+      "top": -60,
+      "left": 350,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": 280,
+      "left": 250,
       "attrs": {}
     }
   ],
   "connections": [
-    ["esp32:TX", "$serialMonitor:RX", "green", []],
-    ["esp32:RX", "$serialMonitor:TX", "green", []],
-    ["display:GND", "esp32:GND", "black", []],
-    ["display:VCC", "esp32:5V", "red", []],
-    ["display:CS", "esp32:5", "orange", []],
-    ["display:DC", "esp32:17", "orange", []],
-    ["display:RST", "esp32:16", "orange", []],
-    ["display:SCK", "esp32:18", "orange", []],
-    ["display:MISO", "esp32:19", "orange", []],
-    ["display:MOSI", "esp32:23", "orange", []],
-    ["btn_prev:1", "esp32:GND", "black", []],
-    ["btn_prev:2", "esp32:35", "green", []],
-    ["btn_next:1", "esp32:GND", "black", []],
-    ["btn_next:2", "esp32:0", "green", []],
-    ["sdcard:GND", "esp32:GND", "black", []],
-    ["sdcard:VCC", "esp32:3V3", "red", []],
-    ["sdcard:CS", "esp32:21", "orange", []],
-    ["sdcard:SCK", "esp32:18", "orange", []],
-    ["sdcard:MISO", "esp32:19", "orange", []],
-    ["sdcard:MOSI", "esp32:23", "orange", []]
-  ]
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:GND.2", "lcd:GND", "black", [ "h-134.4", "v201.6" ] ],
+    [ "esp:3V3", "lcd:VCC", "red", [ "h-144", "v192" ] ],
+    [ "esp:IO5", "lcd:CS", "green", [ "h-28.8", "v172.8" ] ],
+    [ "esp:IO4", "lcd:DC", "green", [ "h-38.4", "v163.2" ] ],
+    [ "esp:IO6", "lcd:SCK", "green", [ "h-19.2", "v182.4" ] ],
+    [ "esp:IO7", "lcd:SDA", "green", [ "h-9.6", "v192" ] ],
+    [ "esp:IO2", "lcd:SDO", "green", [ "h-67.2", "v144" ] ],
+    [ "esp:IO15", "lcd:RST", "green", [ "h9.6", "v201.6" ] ],
+    [ "esp:IO0", "btnEnter:2.r", "green", [ "h-115.2", "v-86.4" ] ],
+    [ "esp:GND.1", "btnEnter:1.l", "black", [ "h-134.4", "v-76.8" ] ],
+    [ "esp:IO10", "btnCancel:2.r", "red", [ "h-115.2", "v-28.8" ] ],
+    [ "esp:GND.1", "btnCancel:1.l", "black", [ "h-134.4", "v-19.2" ] ],
+    [ "esp:IO3", "btnUp:2.r", "blue", [ "h-115.2", "v28.8" ] ],
+    [ "esp:GND.1", "btnUp:1.l", "black", [ "h-134.4", "v38.4" ] ],
+    [ "esp:IO1", "btnDown:2.r", "gold", [ "h-115.2", "v86.4" ] ],
+    [ "esp:GND.1", "btnDown:1.l", "black", [ "h-134.4", "v96" ] ],
+    [ "esp:3V3", "baro:VCC", "red", [ "h-9.6", "v-153.6" ] ],
+    [ "esp:GND.2", "baro:GND", "black", [ "h9.6", "v-163.2" ] ],
+    [ "esp:IO18", "baro:SDA", "blue", [ "h115.2", "v-134.4", "h-163.2" ] ],
+    [ "esp:IO19", "baro:SCL", "orange", [ "h124.8", "v-144", "h-182.4" ] ],
+    [ "baro:VCC", "imu:VCC", "red", [ "v0", "h96" ] ],
+    [ "baro:GND", "imu:GND", "black", [ "v0", "h96" ] ],
+    [ "baro:SDA", "imu:SDA", "blue", [ "v-9.6", "h105.6", "v9.6" ] ],
+    [ "baro:SCL", "imu:SCL", "orange", [ "v-9.6", "h105.6", "v9.6" ] ],
+    [ "esp:3V3", "gps:VCC", "red", [ "h-9.6", "v-153.6", "h153.6" ] ],
+    [ "esp:GND.2", "gps:GND", "black", [ "h9.6", "v-163.2", "h144" ] ],
+    [ "esp:IO12", "gps:RX", "green", [ "h67.2", "v-115.2", "h-48" ] ],
+    [ "esp:IO13", "gps:TX", "purple", [ "h76.8", "v-124.8", "h-67.2" ] ],
+    [ "esp:IO16", "buzzer:1", "orange", [ "h28.8", "v124.8", "h-9.6" ] ],
+    [ "esp:GND.2", "buzzer:2", "black", [ "h9.6", "v134.4", "h-28.8" ] ]
+  ],
+  "dependencies": {}
 }

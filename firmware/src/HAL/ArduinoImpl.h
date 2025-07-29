@@ -53,7 +53,7 @@ public:
     }
 
     uint8_t getLedBuiltinPin() override {
-        return LED_BUILTIN;
+        return PIN_LED_BUILTIN;
     }
 };
 
