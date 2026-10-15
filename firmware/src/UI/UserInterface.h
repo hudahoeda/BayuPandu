@@ -7,6 +7,7 @@
 #include "UI/InputManager.h"
 #include "UI/LVGLInit.h"
 #include "UI/UiStrings.h"
+#include "UI/BootScreen.h"
 #include "lvgl.h"
 
 enum class DisplayScreen {
@@ -115,6 +116,13 @@ private:
 
     const char* alertMessage = nullptr;
     uint32_t alertUntil = 0;
+
+    // The startup sign runs before any page exists; the pages are built when it ends,
+    // so the two never share the LVGL heap for long.
+    bool booting = true;
+    BootScreen* boot = nullptr;
+    void updateBoot();
+    void finishBoot();
 
     const UiStrings& text() const;
 

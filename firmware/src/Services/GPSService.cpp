@@ -9,7 +9,7 @@ GPSService::GPSService(IGPS& gps)
 
 void GPSService::update()
 {
-    gps.update();
+    responding = gps.update();
     gpsData = gps.getCurrentPosition();
     detectFlightState();
 }

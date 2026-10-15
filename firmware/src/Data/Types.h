@@ -57,6 +57,16 @@ struct AttitudeData {
     bool isCalibrated = false;
 };
 
+// What the boot self-test found, shown on the startup screen.
+struct SelfTestResult {
+    bool barometerOk = false;   // the barometer gave a reading
+    bool gpsResponding = false; // the module is talking, with or without a fix
+    bool gpsFix = false;
+    uint8_t satellites = 0;
+    bool storageOk = false;     // the card answered
+    int batteryPercent = 0;
+};
+
 // A composite structure holding the fused flight data from all sensors.
 struct FlightData {
     float altitude = 0.0f;           // meters MSL

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-15T00:00:00Z",
+  "generatedAt": "2026-10-15T12:00:00Z",
   "title": "Design System: BayuPandu",
   "extensions": {
     "colorMeta": {
@@ -114,7 +114,19 @@
         "displayName": "Strip and Hint",
         "lvglFont": "bp_text_11",
         "glyphs": "0x20-0x7E,0xB0,0xB7",
-        "purpose": "Status strip, footer button hints, position key."
+        "purpose": "Status strip, footer button hints, position key, Settings version line, boot skip caption."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "lvglFont": "bp_wordmark_32",
+        "glyphs": "0x41,0x42,0x44,0x4E,0x50,0x55,0x59",
+        "purpose": "BAYUPANDU on the boot sign, -1 px tracking; the SVG lockups use the same face at -1/32 em."
+      },
+      "version": {
+        "displayName": "Version",
+        "lvglFont": "bp_version_16",
+        "glyphs": "0x2E,0x30-0x39,0x56",
+        "purpose": "V plus BAYUPANDU_VERSION under the boot wordmark."
       }
     },
     "shadows": [],
@@ -122,7 +134,37 @@
       {
         "name": "refresh",
         "value": "200ms",
-        "purpose": "Values update on a 200 ms refresh (kRefreshMs); no animated transitions."
+        "purpose": "Values update on a 200 ms refresh (kRefreshMs); no animated transitions on flight pages."
+      },
+      {
+        "name": "ease-boot",
+        "value": "ease-out cubic, 1-(1-x)^3",
+        "purpose": "The one easing, used by the boot wind draw and wing lift."
+      },
+      {
+        "name": "boot-wind",
+        "value": "start 80ms, stagger 90ms, draw 520ms",
+        "purpose": "Each wind line draws in from the left along the slope."
+      },
+      {
+        "name": "boot-wing-appear",
+        "value": "300ms",
+        "purpose": "Wing appears 20 px low over the crest."
+      },
+      {
+        "name": "boot-reveal",
+        "value": "first 900ms, step 300ms",
+        "purpose": "Check rows appear whole, one per step."
+      },
+      {
+        "name": "boot-lift",
+        "value": "250ms per passed check, 20px total",
+        "purpose": "Wing rises one equal step per passed check; the last 15% of each wind line is pushed by the same lift."
+      },
+      {
+        "name": "boot-hold",
+        "value": "900ms ok / 2200ms failed",
+        "purpose": "Hold after the last result, then a hard cut to Flight. Any button skips."
       }
     ],
     "breakpoints": [
@@ -135,7 +177,10 @@
       "target": "embedded",
       "toolkit": "LVGL 8.3 on ESP32",
       "lvglHeap": "64 KB; one page set about 48 KB",
-      "fontGenerator": "firmware/tools/gen_fonts.sh"
+      "fontGenerator": "firmware/tools/gen_fonts.sh",
+      "fonts": "seven: bp_figures_84, bp_figures_38, bp_text_22, bp_text_14, bp_text_11, bp_wordmark_32, bp_version_16",
+      "palette": "firmware/src/UI/SignPalette.h",
+      "version": "firmware/src/version.h (0.1.0)"
     },
     "glyphs": [
       {
@@ -148,9 +193,20 @@
       },
       {
         "name": "diamond",
-        "purpose": "Warning diamond, 14x14 in ink on the yellow footer."
+        "purpose": "Warning diamond in ink on yellow: 14x14 in the footer, 12x12 on a failed boot check."
       }
-    ]
+    ],
+    "brandMark": {
+      "source": [
+        "firmware/src/UI/BrandMark.cpp",
+        "assets/brand/gen_brand.py"
+      ],
+      "geometry": "Mark 1 unit wide, origin at wing top centre. Wing: 9 cells on an arc of 42 deg half-span, outer radius 0.747 (chord 1), 1.8 deg gaps, depth 0.18 centre to 0.11 tips (quadratic), round tips. Wind lines 0.034 thick, round caps, at y 0.345 (x -0.18..0.22), 0.410 (x -0.17..0.21), 0.475 (x -0.07..0.11). Height 0.492.",
+      "colour": "One colour only: white on green, ink (#111111) or white bare. Never yellow, never two-tone.",
+      "lockups": "Mark ~2 em wide (190 at 96 px wordmark), 0.42 em gap, wordmark Overpass Black at -1/32 em. Sign-panel version: green, white border 8, radius 22, 220 tall. Bare black/white versions keep 0.11 mark-width margin.",
+      "tile": "Square green sign, radius 16%, border 3.5%, mark 68% wide (512, 180 px).",
+      "favicon": "favicon.svg: borderless tile, simplified mark 82% wide, 5 cells, 6 deg gaps, 2 wind lines. 16 px: hand-fitted pixel map in gen_brand.py."
+    }
   },
   "components": [
     {
@@ -200,33 +256,56 @@
       "description": "Two-line setting row; the focused row inverts to a white band with green text.",
       "html": "<div class=\"ds-set-wrap\"><button class=\"ds-set\"><span>VOLUME</span><b>HIGH</b></button><button class=\"ds-set ds-set-on\"><span>LIFT TONE</span><b>+0.2 m/s</b></button></div>",
       "css": ".ds-set-wrap{background:#00613F;padding:6px;width:226px;}.ds-set{display:flex;flex-direction:column;align-items:flex-start;width:214px;height:50px;padding:3px 5px;margin-bottom:6px;border:0;border-radius:3px;background:transparent;color:#FFFFFF;font-family:'Overpass',sans-serif;font-weight:800;}.ds-set span{font-size:14px;letter-spacing:1px;}.ds-set b{font-size:22px;}.ds-set-on,.ds-set:focus-visible{background:#FFFFFF;color:#00613F;outline:none;}"
+    },
+    {
+      "name": "Boot Sign",
+      "kind": "custom",
+      "refersTo": "boot-check-row-failed",
+      "description": "Startup sign: wordmark and version, ridge-lift art with the wing mark, four self-test rows; a failed check is a yellow band with the diamond.",
+      "html": "<div class=\"ds-boot\"><div class=\"ds-wm\">BAYUPANDU</div><div class=\"ds-ver\">V0.1.0</div><svg class=\"ds-art\" viewBox=\"0 0 224 146\" width=\"224\" height=\"146\"><path d=\"M4 133 C60 132 90 125 120 100 C140 82 150 80 162 84 C180 92 200 100 224 104\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2.9\" stroke-linecap=\"round\"/><path d=\"M4 98 C60 98 80 90 105 70 C120 58 135 52 146 50\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2.3\" stroke-linecap=\"round\"/><polygon points=\"153,48 145,46 147,53\" fill=\"#FFFFFF\"/></svg><div class=\"ds-row\"><span>BARO</span><span>OK</span></div><div class=\"ds-row ds-row-fail\"><i></i><span>GPS</span><span>NONE</span></div><div class=\"ds-skip\">ANY BUTTON TO SKIP</div></div>",
+      "css": ".ds-boot{position:relative;width:232px;height:312px;box-sizing:border-box;background:#00613F;color:#FFFFFF;border:3px solid #FFFFFF;border-radius:8px;font-family:'Overpass',sans-serif;font-weight:800;outline:4px solid #0E1A14;}.ds-wm{position:absolute;left:10px;top:8px;font-weight:900;font-size:32px;letter-spacing:-1px;}.ds-ver{position:absolute;left:11px;top:44px;font-weight:900;font-size:16px;}.ds-art{position:absolute;left:1px;top:39px;}.ds-row{position:relative;display:flex;width:220px;height:23px;margin-left:3px;padding-left:41px;box-sizing:border-box;font-size:22px;line-height:23px;}.ds-boot>.ds-row:first-of-type{margin-top:188px;}.ds-row span:first-of-type{width:91px;}.ds-row-fail{background:#FFC20E;color:#111111;border-radius:3px;height:26px;line-height:26px;}.ds-row-fail i{position:absolute;left:5px;top:7px;width:9px;height:9px;background:#111111;transform:rotate(45deg);}.ds-skip{position:absolute;bottom:6px;width:100%;text-align:center;font-size:11px;letter-spacing:1px;}"
+    },
+    {
+      "name": "Brand Lockup (sign panel)",
+      "kind": "custom",
+      "refersTo": "boot-wordmark",
+      "description": "Mark beside BAYUPANDU on a green sign panel with a white border; README header.",
+      "html": "<div class=\"ds-lock\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 448 244.8\" width=\"76\" height=\"42\" role=\"img\" aria-label=\"BayuPandu\">  <polygon points=\"24,100.77 28.32,96.96 32.71,93.23 37.18,89.58 41.71,86.02 46.31,82.55 50.98,79.17 55.71,75.88 85.75,119.98 81.16,121.69 76.56,123.47 71.95,125.32 67.33,127.24 62.71,129.24 58.08,131.32 53.44,133.47\" fill=\"#FFFFFF\"/>  <polygon points=\"63.55,70.72 68.44,67.67 73.39,64.72 78.4,61.86 83.46,59.1 88.57,56.44 93.73,53.88 98.94,51.42 125.01,107.99 120.49,109.15 115.97,110.36 111.44,111.63 106.9,112.96 102.35,114.36 97.79,115.82 93.22,117.35\" fill=\"#FFFFFF\"/>  <polygon points=\"107.53,47.63 112.86,45.43 118.23,43.34 123.64,41.35 129.09,39.47 134.57,37.69 140.09,36.02 145.63,34.46 163.55,100.4 159.12,101.08 154.67,101.8 150.22,102.58 145.77,103.42 141.3,104.3 136.82,105.25 132.34,106.25\" fill=\"#FFFFFF\"/>  <polygon points=\"154.73,32.14 160.35,30.86 165.99,29.68 171.66,28.62 177.34,27.66 183.04,26.82 188.76,26.08 194.49,25.46 201.55,96.6 197.16,96.86 192.77,97.17 188.38,97.52 183.98,97.92 179.58,98.36 175.17,98.86 170.76,99.4\" fill=\"#FFFFFF\"/>  <polygon points=\"203.84,24.68 209.6,24.35 215.36,24.13 221.12,24.01 226.88,24.01 232.64,24.13 238.4,24.35 244.16,24.68 239.32,96.28 234.94,96.14 230.56,96.05 226.19,96.01 221.81,96.01 217.44,96.05 213.06,96.14 208.68,96.28\" fill=\"#FFFFFF\"/>  <polygon points=\"253.51,25.46 259.24,26.08 264.96,26.82 270.66,27.66 276.34,28.62 282.01,29.68 287.65,30.86 293.27,32.14 277.24,99.4 272.83,98.86 268.42,98.36 264.02,97.92 259.62,97.52 255.23,97.17 250.84,96.86 246.45,96.6\" fill=\"#FFFFFF\"/>  <polygon points=\"302.37,34.46 307.91,36.02 313.43,37.69 318.91,39.47 324.36,41.35 329.77,43.34 335.14,45.43 340.47,47.63 315.66,106.25 311.18,105.25 306.7,104.3 302.23,103.42 297.78,102.58 293.33,101.8 288.88,101.08 284.45,100.4\" fill=\"#FFFFFF\"/>  <polygon points=\"349.06,51.42 354.27,53.88 359.43,56.44 364.54,59.1 369.6,61.86 374.61,64.72 379.56,67.67 384.45,70.72 354.78,117.35 350.21,115.82 345.65,114.36 341.1,112.96 336.56,111.63 332.03,110.36 327.51,109.15 322.99,107.99\" fill=\"#FFFFFF\"/>  <polygon points=\"392.29,75.88 397.02,79.17 401.69,82.55 406.29,86.02 410.82,89.58 415.29,93.23 419.68,96.96 424,100.77 394.56,133.47 389.92,131.32 385.29,129.24 380.67,127.24 376.05,125.32 371.44,123.47 366.84,121.69 362.25,119.98\" fill=\"#FFFFFF\"/>  <circle cx=\"38.72\" cy=\"117.12\" r=\"22\" fill=\"#FFFFFF\"/>  <circle cx=\"409.28\" cy=\"117.12\" r=\"22\" fill=\"#FFFFFF\"/>  <line x1=\"152\" y1=\"162\" x2=\"312\" y2=\"162\" stroke=\"#FFFFFF\" stroke-width=\"13.6\" stroke-linecap=\"round\"/>  <line x1=\"156\" y1=\"188\" x2=\"308\" y2=\"188\" stroke=\"#FFFFFF\" stroke-width=\"13.6\" stroke-linecap=\"round\"/>  <line x1=\"196\" y1=\"214\" x2=\"268\" y2=\"214\" stroke=\"#FFFFFF\" stroke-width=\"13.6\" stroke-linecap=\"round\"/></svg><span>BAYUPANDU</span></div>",
+      "css": ".ds-lock{display:inline-flex;align-items:center;gap:16px;padding:18px 18px;background:#00613F;border:3px solid #FFFFFF;border-radius:9px;color:#FFFFFF;font-family:'Overpass',sans-serif;font-weight:900;font-size:38px;letter-spacing:-0.03em;}"
     }
   ],
   "narrative": {
     "northStar": "The Direction Sign",
-    "overview": "Every page is one highway guide sign: a retroreflective green panel with a white border, white legends in a road-sign face, and a single white rule dividing the sign into sections. Figures are set as sign legends, big and heavy, so climb, height and glide read in about one second from a cockpit pod in direct sun. The system refuses the instrument-category default of a grid of boxes with a side vario bar.\n\nDensity is low by design. Each page has one hero (a sign glyph beside an 84 px figure) and a short stack of distance lines below it. Meaning is carried by shape and position as well as colour: lift and sink are different arrows, warnings are a different sign. There is no depth, no ornament and no motion beyond values changing on a 200 ms refresh.\n\nThe palette has one job per colour. Green is the ground, white is every legend, yellow means something is wrong and nothing else.",
+    "overview": "Every page is one highway guide sign: a retroreflective green panel with a white border, white legends in a road-sign face, and a single white rule dividing the sign into sections. Figures are set as sign legends, big and heavy, so climb, height and glide read in about one second from a cockpit pod in direct sun. The system refuses the instrument-category default of a grid of boxes with a side vario bar.\n\nDensity is low by design. Each page has one hero (a sign glyph beside an 84 px figure) and a short stack of distance lines below it. Meaning is carried by shape and position as well as colour: lift and sink are different arrows, warnings are a different sign. There is no depth and no ornament. Motion is values changing on a 200 ms refresh, with one exception: the boot sign, where wind draws in along a ridge and the wing mark rises one step for each self-test that passes, then the panel cuts to Flight.\n\nThe palette has one job per colour. Green is the ground, white is every legend, yellow means something is wrong and nothing else.",
     "keyCharacteristics": [
       "One road-sign panel per page, 3 px white border, 8 px corners, on a near-black surround.",
       "Hero row: polygon sign glyph plus 84 px Overpass Black figure, magnitude only.",
       "Distance lines: key left, 38 px figure right, unit in its own column.",
       "Yellow is reserved for warnings and the error sign.",
       "Unknown values are a single dash with the glyph hidden.",
-      "Flat: no cards, shadows, gradients or colour-only meaning."
+      "Flat: no cards, shadows, gradients or colour-only meaning.",
+      "One mark: a front-view wing of nine cells over three wind lines, always one colour.",
+      "One authored motion: the boot sign's ridge lift; everything else changes by value only."
     ],
     "rules": [
       {
         "name": "The Yellow Means Trouble Rule",
-        "body": "Warning yellow appears only when something is wrong: a footer warning sign or the error panel. If a surface is yellow and nothing is wrong, it is a bug.",
+        "body": "Warning yellow appears only when something is wrong: a footer warning sign, a failed boot check, or the error panel. If a surface is yellow and nothing is wrong, it is a bug.",
         "section": "colors"
       },
       {
         "name": "The Shape Carries Meaning Rule",
-        "body": "Every colour signal has a shape twin: the footer warning adds the diamond glyph, sink is a down arrow and not a red number, level is a bar. The UI must read correctly on a monochrome panel.",
+        "body": "Every colour signal has a shape twin: the footer warning adds the diamond glyph, a failed boot check adds the diamond and costs the wing its lift, sink is a down arrow and not a red number, level is a bar. The UI must read correctly on a monochrome panel.",
         "section": "colors"
       },
       {
         "name": "The Generated Sizes Rule",
-        "body": "Only the five generated fonts exist. A new size or glyph means editing `gen_fonts.sh` and paying for it in flash; never approximate with scaling.",
+        "body": "Only the seven generated fonts exist; the wordmark and version fonts carry only the glyphs of their one string. A new size or glyph means editing `gen_fonts.sh` and paying for it in flash; never approximate with scaling.",
+        "section": "typography"
+      },
+      {
+        "name": "The Cap-Line Placement Rule",
+        "body": "On the boot sign, legends are positioned by the top of their capitals, not their line box: Overpass capitals are 0.70 em tall, so a label's top sits (line height - base line - 0.70 em) above the cap line it is set to.",
         "section": "typography"
       },
       {
@@ -248,6 +327,21 @@
         "name": "The Flat Sign Rule",
         "body": "A road sign has no depth. No shadows, gradients, glows or cards, on any page.",
         "section": "elevation"
+      },
+      {
+        "name": "The Lift Is Earned Rule",
+        "body": "The wing rises one equal step (20 px over four checks) only for a check that passed. A failure leaves it lower; it is never lifted to the top to look finished.",
+        "section": "components"
+      },
+      {
+        "name": "The Wind Follows The Wing Rule",
+        "body": "The last 15% of each wind line is pushed by the same lift as the wing, so the arrowheads stay under the wing instead of running into it.",
+        "section": "components"
+      },
+      {
+        "name": "The Exact Stroke Rule",
+        "body": "Curved strokes on the boot art are rasterised in `BootScreen.cpp` with exact-distance coverage (each pixel takes the stroke colour in proportion to its distance from the nearest segment), because LVGL 8.3 places polygon corners on whole pixels and leaves 1 px jogs and uneven weight on gentle curves. Use LVGL polygons only for solid shapes (arrowheads, glyphs, wing cells).",
+        "section": "components"
       }
     ],
     "dos": [
@@ -255,9 +349,12 @@
       "Do separate the hero from the distance lines with the single 3 px white rule.",
       "Do print hero figures as magnitude only and let the arrow carry direction.",
       "Do show an unknown figure as a single \"-\" and hide its glyph.",
-      "Do use the five generated fonts at their generated sizes only.",
+      "Do use the seven generated fonts at their generated sizes only.",
       "Do keep the LVGL heap budget in mind: 64 KB total, one page set about 48 KB. Free the old pages before rebuilding (language change), never hold two sets.",
-      "Do invert the focused settings row (white band, green text) as the only focus treatment."
+      "Do invert the focused settings row (white band, green text) as the only focus treatment.",
+      "Do draw the brand mark from its geometry (`BrandMark.cpp` / `gen_brand.py`) in one colour: white on green, ink on light, white on dark.",
+      "Do mark a failed boot check with the yellow band and diamond together, and withhold its lift.",
+      "Do free the boot sign before building the flight pages."
     ],
     "donts": [
       "Don't use warning yellow for anything that is not a warning or the error sign.",
@@ -265,7 +362,10 @@
       "Don't show the level bar for an unknown value; it would claim level flight.",
       "Don't use cards, nested boxes, shadows, gradients or transparency.",
       "Don't signal anything with colour alone; pair it with a glyph, shape or position.",
-      "Don't add a side vario bar or a grid of boxed readouts."
+      "Don't add a side vario bar or a grid of boxed readouts.",
+      "Don't animate anything outside the boot sign; flight pages change by value only.",
+      "Don't colour the brand mark yellow or two-tone it, or ship it from a raster source.",
+      "Don't scale the vector mark down to 16 px; use the hand-fitted favicon pixel map."
     ]
   }
 }

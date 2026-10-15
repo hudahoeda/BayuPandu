@@ -71,7 +71,7 @@ void SimulationService::update() {
 }
 
 GPSData SimulationService::getGPSData() const {
-    if (!gpsLost) return simulatedGPSData;
+    if (!gpsLost && !gpsSilent) return simulatedGPSData;
     // What a receiver reports after losing the sky: last position, no fix.
     GPSData lost = simulatedGPSData;
     lost.hasValidFix = false;

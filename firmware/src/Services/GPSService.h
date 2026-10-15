@@ -14,11 +14,14 @@ public:
     FlightState getFlightState() const;
     float getSpeed() const;
     float getHeading() const;
+    // True when the module delivered data on the last update, fix or not.
+    bool isResponding() const { return responding; }
 
 private:
     IGPS& gps;
     GPSData gpsData;
     FlightState flightState;
+    bool responding = false;
 
     void detectFlightState();
 };

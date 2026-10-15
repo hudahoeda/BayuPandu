@@ -4,3 +4,7 @@ software-development-guide.md
 project-overview.md
 # Impeccable decision-page server state and logs (local only)
 .impeccable/questions/
+
+# Impeccable build state and review captures (regenerable, local only)
+.impeccable/build/
+.impeccable/review/

@@ -1,5 +1,6 @@
 #include "UserInterface.h"
 #include "UI/SignGlyph.h"
+#include "UI/SignPalette.h"
 #include "version.h"
 #include <cmath>
 #include <cstdio>
@@ -13,12 +14,11 @@ LV_FONT_DECLARE(bp_text_11);
 
 namespace {
 
-// Road-sign palette: retroreflective green, white legends, warning yellow.
-const lv_color_t kSignGreen = lv_color_hex(0x00613F);
-const lv_color_t kLegend = lv_color_hex(0xFFFFFF);
-const lv_color_t kWarning = lv_color_hex(0xFFC20E);
-const lv_color_t kInk = lv_color_hex(0x111111);
-const lv_color_t kSurround = lv_color_hex(0x0E1A14);
+using SignPalette::kSignGreen;
+using SignPalette::kLegend;
+using SignPalette::kWarning;
+using SignPalette::kInk;
+using SignPalette::kSurround;
 
 // Geometry, in panel content coordinates (panel 232x312 at 4,4 with a 3 px border).
 constexpr lv_coord_t kContentW = 226;
@@ -100,8 +100,34 @@ void UserInterface::initialize() {
     if (!LVGLInit::initialize(arduino)) {
         return;
     }
-    buildAll();
-    setScreen(DisplayScreen::MAIN_FLIGHT);
+    // The boot sign is built on the first update(), once setup has finished, so the
+    // self-test sees the configured language, sensors and any replay.
+    booting = true;
+    lastUpdate = arduino.millis();
+}
+
+void UserInterface::updateBoot() {
+    uint32_t now = arduino.millis();
+    if (!boot) {
+        boot = new BootScreen(text(), flightManager.runSelfTest(), now);
+        lv_scr_load(boot->screen());
+    }
+    bool running = boot->update(now);
+    LVGLInit::handler();
+    if (!running) finishBoot();
+}
+
+void UserInterface::finishBoot() {
+    booting = false;
+    // Free the boot sign before building the pages, so they are allocated into one
+    // unfragmented heap. A bare screen stands in meanwhile: the active screen can't be deleted.
+    lv_obj_t* placeholder = lv_obj_create(nullptr);
+    lv_obj_remove_style_all(placeholder);
+    lv_scr_load(placeholder);
+    delete boot;
+    boot = nullptr;
+    buildAll();  // loads the current page
+    lv_obj_del(placeholder);
     lastUpdate = arduino.millis();
 }
 
@@ -397,6 +423,10 @@ void UserInterface::buildErrorPage() {
 // Updating
 
 void UserInterface::update() {
+    if (booting) {
+        updateBoot();
+        return;
+    }
     if (alertMessage && static_cast<int32_t>(arduino.millis() - alertUntil) >= 0) {
         alertMessage = nullptr;
     }
@@ -420,6 +450,7 @@ void UserInterface::update() {
 }
 
 void UserInterface::refresh() {
+    if (booting) return;
     FlightData data = flightManager.getFusedFlightData();
     const FlightStatsSnapshot& stats = flightManager.getFlightStats();
     SignPage& page = pages[static_cast<int>(currentScreen)];
@@ -705,6 +736,7 @@ void UserInterface::setScreen(DisplayScreen screen) {
         configService.saveConfig();
     }
     currentScreen = screen;
+    if (booting) return;  // shown when the boot sign ends
     lv_obj_t* target = pages[static_cast<int>(screen)].screen;
     if (target && lv_scr_act() != target) lv_scr_load(target);
     refresh();
@@ -715,6 +747,10 @@ DisplayScreen UserInterface::getCurrentScreen() const {
 }
 
 void UserInterface::handleButtonAction(ButtonAction action, uint8_t buttonId) {
+    if (booting) {
+        if (boot) boot->skip();
+        return;
+    }
     if (action != ButtonAction::SHORT_PRESS) return;
     enum { UP = 0, DOWN = 1, ENTER = 2, CANCEL = 3 };
 

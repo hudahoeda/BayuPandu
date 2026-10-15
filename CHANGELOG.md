@@ -4,6 +4,21 @@ All notable changes to BayuPandu are recorded here. Versions follow
 [Semantic Versioning](https://semver.org/); the firmware version lives in
 `firmware/src/version.h`, and each release is tagged `v<version>`.
 
+## [Unreleased]
+
+### Added
+- BayuPandu mark: a paraglider wing carried on wind lines, drawn as vector on the
+  device and generated as SVG/PNG in `assets/brand/` (lockups, one-colour
+  versions, favicon, social preview). The README header uses it.
+- Boot sign: wind meets a ridge and lifts the wing while the self-test shows
+  barometer, GPS, card and battery; a failed check is a yellow line. Any button
+  skips it.
+- Simulator: `--boot-frames DIR` and `--gps-silent`; `--shots` also saves the boot sign.
+
+### Changed
+- A replay no longer raises a yellow "SIMULATION ACTIVE" footer; yellow is kept
+  for trouble.
+
 ## [0.1.0] - 2026-10-15
 
 First tagged version. It runs in the desktop simulator; it has not flown, and

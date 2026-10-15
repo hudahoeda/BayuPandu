@@ -1,8 +1,8 @@
 <p align="center">
-    <strong>
-        <span style="font-size:2em;">BayuPandu: An Open Source Paragliding Flight Computer</span>
-    </strong>
+  <img src="assets/brand/bayupandu-lockup.svg" alt="BayuPandu" width="520">
 </p>
+
+<p align="center"><strong>An open-source paragliding flight computer</strong></p>
 
 BayuPandu is a cost-effective, FAI-compliant, and DIY-friendly integrated flight computer for paragliding. This project represents a complete ground-up engineering solution using readily available components, ensuring long-term maintainability while avoiding reliance on discontinued consumer electronics. The primary focus is on creating a device that is not only functional but also affordable, maintainable, and replicable, with a total build cost under 1-2 million Rupiah, using components easily sourced in Indonesia.
 

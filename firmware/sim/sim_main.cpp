@@ -241,8 +241,43 @@ static void runFor(Firmware& fw, uint64_t ms, uint32_t stepMs = 20) {
     }
 }
 
+static void printHeap(const char* when) {
+    lv_mem_monitor_t mem;
+    lv_mem_monitor(&mem);
+    std::printf("LVGL heap %s: %u of %u bytes used, largest free block %u\n", when,
+                (unsigned)(mem.total_size - mem.free_size), (unsigned)mem.total_size,
+                (unsigned)mem.free_biggest_size);
+}
+
+static bool captureNow(const std::string& path) {
+    lv_refr_now(nullptr);
+    if (!savePng(path)) {
+        std::fprintf(stderr, "failed to write %s\n", path.c_str());
+        return false;
+    }
+    return true;
+}
+
+// Writes one PNG per 40 ms frame of the boot sequence, for previews and video.
+static int runBootFrames(Firmware& fw, const std::string& dir) {
+    char name[32];
+    for (int frame = 0; frame * 40 <= 3600; frame++) {
+        runFor(fw, 40);
+        std::snprintf(name, sizeof(name), "/boot-%03d.png", frame);
+        if (!captureNow(dir + name)) return 1;
+    }
+    std::printf("wrote %s/boot-*.png (25 fps)\n", dir.c_str());
+    return 0;
+}
+
 static int runHeadless(Firmware& fw, const std::string& dir, double atSeconds) {
-    runFor(fw, static_cast<uint64_t>(atSeconds * 1000.0));
+    // The boot sign with every check shown, during its hold.
+    runFor(fw, 2100);
+    printHeap("during boot");
+    if (!captureNow(dir + "/0-boot.png")) return 1;
+    std::printf("wrote %s/0-boot.png\n", dir.c_str());
+    runFor(fw, static_cast<uint64_t>(std::max(0.0, atSeconds * 1000.0 - 2100.0)));
+    printHeap("in flight");
 
     auto capture = [&](const char* name) {
         runFor(fw, 400);  // let the UI's refresh interval elapse and redraw
@@ -403,19 +438,21 @@ static int runInteractive(Firmware& fw, double speed, int scale) {
 int main(int argc, char** argv) {
     std::string igcPath;
     std::string shotsDir;
+    std::string bootDir;
     double atSeconds = 60.0;
     std::string fromText;
     long lengthSec = 180;
     double speed = 1.0;
     int scale = 2;
     uint8_t language = 0;
-    bool noGps = false, noData = false;
+    bool noGps = false, noData = false, gpsSilent = false;
     int battery = 100;
 
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         auto next = [&]() -> const char* { return i + 1 < argc ? argv[++i] : ""; };
         if (arg == "--shots") shotsDir = next();
+        else if (arg == "--boot-frames") bootDir = next();
         else if (arg == "--at") atSeconds = std::atof(next());
         else if (arg == "--speed") speed = std::atof(next());
         else if (arg == "--scale") scale = std::atoi(next());
@@ -424,18 +461,21 @@ int main(int argc, char** argv) {
         else if (arg == "--length") lengthSec = parseClock(next());
         else if (arg == "--no-gps") noGps = true;
         else if (arg == "--no-data") noData = true;
+        else if (arg == "--gps-silent") gpsSilent = true;
         else if (arg == "--battery") battery = std::atoi(next());
         else if (arg == "-h" || arg == "--help") {
             std::puts("usage: bayupandu_sim [file.igc] [--from TIME] [--length TIME] [--speed N] [--scale N] [--lang en|id]\n"
-                      "                     [--no-gps] [--no-data] [--battery PCT]\n"
+                      "                     [--no-gps] [--gps-silent] [--no-data] [--battery PCT]\n"
                       "       bayupandu_sim [file.igc] [--from TIME] [--length TIME] --shots DIR [--at SECONDS]\n"
                       "\n"
                       "Replays --length (default 3:00, 0 = whole flight) starting --from after the first\n"
                       "fix, looping. TIME is SECONDS, MM:SS or H:MM:SS. With no file, plays a thermal\n"
                       "and glide from the bundled example flight.\n"
                       "\n"
-                      "--no-gps, --no-data and --battery start with that fault; in the window,\n"
-                      "G, D and B toggle them. --shots also captures each warning state.");
+                      "--no-gps (fix lost), --gps-silent (module not answering), --no-data and\n"
+                      "--battery start with that fault; in the window,\n"
+                      "G, D and B toggle them. --shots also captures each warning state.\n"
+                      "--boot-frames DIR writes the boot sequence as 25 fps PNG frames.");
             return 0;
         } else igcPath = arg;
     }
@@ -444,11 +484,6 @@ int main(int argc, char** argv) {
     fw.setup();
     fw.configService->getConfig().language = language;
 
-    lv_mem_monitor_t mem;
-    lv_mem_monitor(&mem);
-    std::printf("LVGL heap: %u of %u bytes used (%u%%), largest free block %u\n",
-                (unsigned)(mem.total_size - mem.free_size), (unsigned)mem.total_size,
-                (unsigned)mem.used_pct, (unsigned)mem.free_biggest_size);
     if (igcPath.empty()) {
         igcPath = BAYUPANDU_EXAMPLE_IGC;
         if (fromText.empty()) fromText = "1:49:30";  // a strong thermal, then a glide
@@ -471,14 +506,16 @@ int main(int argc, char** argv) {
     fw.replayPath = replay;
     fw.sim().setGpsLost(noGps);
     fw.sim().setBaroLost(noData);
+    fw.sim().setGpsSilent(gpsSilent);
     fw.setBattery(battery);
     std::printf("Replaying %s from +%ld s for %s, looping\n", igcPath.c_str(), fromSec,
                 lengthSec > 0 ? (std::to_string(lengthSec) + " s").c_str() : "the whole flight");
 
-    if (!shotsDir.empty()) {
+    for (const std::string& dir : {shotsDir, bootDir}) {
         std::error_code ec;
-        std::filesystem::create_directories(shotsDir, ec);
+        if (!dir.empty()) std::filesystem::create_directories(dir, ec);
     }
+    if (!bootDir.empty()) return runBootFrames(fw, bootDir);
     return shotsDir.empty() ? runInteractive(fw, speed, scale)
                             : runHeadless(fw, shotsDir, atSeconds);
 }

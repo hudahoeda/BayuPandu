@@ -59,6 +59,18 @@ struct UiStrings {
     const char* errorHint;
     const char* errorAdvice;
     const char* versionFmt;  // "VERSION %s"
+
+    // Boot self-test rows and results.
+    const char* bootBaro;
+    const char* bootGps;
+    const char* bootCard;
+    const char* bootBattery;
+    const char* bootOk;
+    const char* bootFault;
+    const char* bootNoCard;
+    const char* bootNoFix;
+    const char* bootGpsSilent;
+    const char* bootSkip;
 };
 
 inline const UiStrings& uiStrings(uint8_t language) {
@@ -74,6 +86,7 @@ inline const UiStrings& uiStrings(uint8_t language) {
         "SYSTEM ERROR", "CANCEL  BACK TO FLIGHT",
         "USE YOUR MAIN INSTRUMENT.\nRESTART IF THIS STAYS.",
         "BAYUPANDU  VERSION %s",
+        "BARO", "GPS", "CARD", "BATT", "OK", "FAULT", "NONE", "NO FIX", "NONE", "ANY BUTTON TO SKIP",
     };
     static const UiStrings id = {
         "TERBANG", "TERMAL", "NAVIGASI", "STATUS", "SETELAN",
@@ -87,6 +100,7 @@ inline const UiStrings& uiStrings(uint8_t language) {
         "GALAT SISTEM", "CANCEL  KEMBALI",
         "PAKAI INSTRUMEN UTAMA.\nNYALAKAN ULANG JIKA TETAP.",
         "BAYUPANDU  VERSI %s",
+        "BARO", "GPS", "KARTU", "BAT", "OK", "RUSAK", "KOSONG", "MENCARI", "HILANG", "TEKAN TOMBOL UNTUK LEWATI",
     };
     return language == 1 ? id : en;
 }

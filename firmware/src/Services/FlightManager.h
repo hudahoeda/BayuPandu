@@ -62,6 +62,10 @@ public:
     void enableSimulation(const std::string& igcFilePath);
     void disableSimulation();
     bool isSimulationActive() const;
+
+    // Asks each sensor for a first reading, for the boot screen. During a replay the
+    // barometer and GPS answers come from the replay.
+    SelfTestResult runSelfTest();
     SimulationService& getSimulationService() { return simulationService; }
 
 private:

@@ -182,24 +182,15 @@ void FlightManager::enableSimulation(const std::string& igcFilePath) {
     if (simulationService.initialize(igcFilePath)) {
         simulationActiveFlag = true;
         flightStats.reset();
-        // Optionally, reset system state or inform UI
-        if (userInterface) {
-            userInterface->showAlert("Simulation Enabled", 2000);
-        }
     } else {
         if (userInterface) {
-            userInterface->showAlert("Simulation Failed to Load", 3000);
+            userInterface->showAlert("REPLAY FAILED TO LOAD", 3000);
         }
     }
 }
 
 void FlightManager::disableSimulation() {
     simulationActiveFlag = false;
-    // Optionally, reset system state or inform UI
-    if (userInterface) {
-        userInterface->clearAlert(); // Clear any simulation-related alerts
-        userInterface->showAlert("Simulation Disabled", 2000);
-    }
 }
 
 bool FlightManager::isSimulationActive() const {
@@ -212,12 +203,8 @@ void FlightManager::updateAlerts() {
     const char* currentAlert = nullptr;
     if (healthMonitor.hasError()) {
         currentAlert = healthMonitor.getLastError();
-    } else if (simulationActiveFlag) {
-        // In simulation mode, alerts might be based on simulated data or specific simulation events
-        // For now, we'll keep it simple and just show a "SIMULATION ACTIVE" message
-        currentAlert = "SIMULATION ACTIVE";
-    }
-    else { // Only check real sensor issues if not in simulation
+    } else if (!simulationActiveFlag) {
+        // A replay is not trouble: the strip already says SIM, and yellow means trouble.
         BatteryInfo battery = powerService.getBatteryInfo();
         if (powerService.isCriticalBattery()) {
             currentAlert = "CRITICAL BATTERY!";
@@ -238,4 +225,26 @@ void FlightManager::updateAlerts() {
         userInterface->clearAlert();
         lastAlertMessage = nullptr;
     }
+}
+
+SelfTestResult FlightManager::runSelfTest() {
+    SelfTestResult result;
+    GPSData gps;
+    if (simulationActiveFlag) {
+        result.barometerOk = simulationService.hasBaroData();
+        result.gpsResponding = !simulationService.isGpsSilent();
+        gps = simulationService.getGPSData();
+    } else {
+        variometerService.update();
+        result.barometerOk = variometerService.hasData();
+        gpsService.update();
+        result.gpsResponding = gpsService.isResponding();
+        gps = gpsService.getGPSData();
+    }
+    result.gpsFix = gps.hasValidFix;
+    result.satellites = gps.satellites;
+    result.storageOk = storage.isHealthy();
+    powerService.update();
+    result.batteryPercent = powerService.getBatteryInfo().percentage;
+    return result;
 }
