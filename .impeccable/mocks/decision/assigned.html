@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --board:#F6F5F0; --ink:#141414; --lift:#1F4FD8; --sink:#D22B1F; --rule:#8C9196; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { width:240px; height:320px; overflow:hidden; background:var(--board); color:var(--ink);
+         font-family:'Atkinson Hyperlegible',sans-serif; }
+  .strip { height:18px; display:flex; justify-content:space-between; align-items:center;
+           padding:0 6px; font-size:11px; font-weight:700; border-bottom:2px solid var(--ink); }
+  .strip .page { letter-spacing:.06em; }
+  .vario { position:relative; height:112px; padding:2px 8px 0 30px; }
+  .vario .scale { position:absolute; left:8px; top:8px; bottom:8px; width:14px; }
+  .vario .scale .mid { position:absolute; left:0; right:0; top:50%; border-top:2px solid var(--ink); }
+  .vario .scale .fill { position:absolute; left:3px; right:3px; bottom:50%; height:34%; background:var(--lift); }
+  .vario .num { font-family:'Barlow Condensed'; font-weight:700; font-size:96px; line-height:1; color:var(--lift); letter-spacing:-2px; }
+  .vario .unit { position:absolute; right:8px; top:12px; font-size:12px; font-weight:700; text-align:right; line-height:1.2; }
+  .vario .avg { position:absolute; right:8px; bottom:8px; font-size:13px; font-weight:700; }
+  .row { display:flex; align-items:baseline; justify-content:space-between; padding:0 8px;
+         height:44px; border-top:1.5px solid var(--rule); }
+  .row .lbl { font-size:12px; font-weight:700; letter-spacing:.04em; width:44px; }
+  .row .val { font-family:'Barlow Condensed'; font-weight:700; font-size:40px; line-height:44px; }
+  .row .u { font-size:12px; font-weight:700; width:32px; text-align:right; }
+  .log { border-top:2px solid var(--ink); padding:3px 8px 0; }
+  .log .hd { font-size:10px; font-weight:700; letter-spacing:.08em; margin-bottom:1px; }
+  .log .ln { display:flex; justify-content:space-between; font-size:12px; line-height:15px; font-weight:700; }
+  .log .ln .c { color:var(--lift); }
+</style></head>
+<body>
+  <div class="strip"><span class="page">FLIGHT</span><span>GPS 9 · 1:42 · ▮▮▮▯</span></div>
+  <div class="vario">
+    <div class="scale"><div class="mid"></div><div class="fill"></div></div>
+    <div class="num">+2.4</div>
+    <div class="unit">m/s<br>CLIMB</div>
+    <div class="avg">avg +1.8</div>
+  </div>
+  <div class="row"><span class="lbl">ALT</span><span class="val">1 842</span><span class="u">m</span></div>
+  <div class="row"><span class="lbl">GS</span><span class="val">38</span><span class="u">km/h</span></div>
+  <div class="row"><span class="lbl">L/D</span><span class="val">9.5</span><span class="u"></span></div>
+  <div class="log">
+    <div class="hd">THERMALS</div>
+    <div class="ln"><span>T3 13:58</span><span class="c">+2.1</span><span>+412 m</span></div>
+    <div class="ln"><span>T2 13:41</span><span class="c">+1.4</span><span>+268 m</span></div>
+  </div>
+</body></html>

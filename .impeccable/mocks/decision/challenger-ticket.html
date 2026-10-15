@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root { --stock:#FBFAF7; --navy:#1B2A52; --red:#C8102E; --carbon:#4B3B8F; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { width:240px; height:320px; overflow:hidden; background:#E7E3DA; font-family:'Archivo',sans-serif; color:var(--navy); }
+  .coupon { margin:5px; background:var(--stock); border:1.5px solid var(--navy); }
+  .head { background:var(--navy); color:var(--stock); display:flex; justify-content:space-between;
+          padding:3px 7px; font-size:10px; font-weight:800; letter-spacing:.08em; }
+  .climb { padding:2px 8px 4px; display:flex; align-items:baseline; justify-content:space-between; }
+  .climb .n { font-family:'Courier Prime'; font-weight:700; font-size:72px; line-height:1; color:var(--carbon); letter-spacing:-3px; }
+  .climb .u { font-size:11px; font-weight:800; text-align:right; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--navy); }
+  .cell { padding:2px 7px 3px; border-right:1px solid var(--navy); }
+  .cell:last-child { border-right:0; }
+  .cell .k { font-size:9px; font-weight:800; letter-spacing:.08em; }
+  .cell .v { font-family:'Courier Prime'; font-weight:700; font-size:30px; color:var(--carbon); line-height:1.05; }
+  .tear { border-top:2px dashed var(--navy); margin:0 5px; }
+  .stub { position:relative; }
+  .stamp { position:absolute; right:12px; top:22px; transform:rotate(-12deg); border:3px solid var(--red);
+           color:var(--red); font-weight:800; font-size:20px; padding:0 6px; letter-spacing:.1em; opacity:.9; }
+</style></head>
+<body>
+  <div class="coupon">
+    <div class="head"><span>BAYUPANDU · THERMAL 3</span><span>13:58</span></div>
+    <div class="climb"><span class="n">+2.4</span><span class="u">M/S CLIMB<br>AVG +1.8</span></div>
+    <div class="grid"><div class="cell"><div class="k">ALTITUDE M</div><div class="v">1842</div></div>
+      <div class="cell"><div class="k">GAINED M</div><div class="v">+412</div></div></div>
+  </div>
+  <div class="tear"></div>
+  <div class="coupon stub">
+    <div class="head"><span>GLIDE · LEG 2</span><span>GPS 9</span></div>
+    <div class="grid"><div class="cell"><div class="k">GND SPEED KM/H</div><div class="v">38</div></div>
+      <div class="cell"><div class="k">L/D</div><div class="v">9.5</div></div></div>
+    <div class="grid"><div class="cell"><div class="k">WIND</div><div class="v">--</div></div>
+      <div class="cell"><div class="k">TIME</div><div class="v">1:42</div></div></div>
+    <div class="stamp">VOID</div>
+  </div>
+</body></html>

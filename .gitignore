@@ -2,3 +2,5 @@
 GEMINI.md
 software-development-guide.md
 project-overview.md
+# Impeccable decision-page server state and logs (local only)
+.impeccable/questions/

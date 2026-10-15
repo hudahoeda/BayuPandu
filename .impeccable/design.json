@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T00:00:00Z",
+  "title": "Design System: BayuPandu",
+  "extensions": {
+    "colorMeta": {
+      "sign-green": {
+        "role": "primary",
+        "displayName": "Retroreflective Sign Green",
+        "canonical": "#00613F",
+        "source": "kSignGreen",
+        "tonalRamp": [
+          "oklch(15% 0.097 160.9)",
+          "oklch(25% 0.097 160.9)",
+          "oklch(35% 0.097 160.9)",
+          "oklch(45% 0.097 160.9)",
+          "oklch(60% 0.097 160.9)",
+          "oklch(72% 0.097 160.9)",
+          "oklch(84% 0.097 160.9)",
+          "oklch(95% 0.097 160.9)"
+        ]
+      },
+      "warning-yellow": {
+        "role": "secondary",
+        "displayName": "Warning Sign Yellow",
+        "canonical": "#FFC20E",
+        "source": "kWarning",
+        "tonalRamp": [
+          "oklch(15% 0.172 85.3)",
+          "oklch(25% 0.172 85.3)",
+          "oklch(35% 0.172 85.3)",
+          "oklch(45% 0.172 85.3)",
+          "oklch(60% 0.172 85.3)",
+          "oklch(72% 0.172 85.3)",
+          "oklch(84% 0.172 85.3)",
+          "oklch(95% 0.172 85.3)"
+        ]
+      },
+      "legend-white": {
+        "role": "neutral",
+        "displayName": "Legend White",
+        "canonical": "#FFFFFF",
+        "source": "kLegend",
+        "tonalRamp": [
+          "oklch(15% 0.000 0.0)",
+          "oklch(25% 0.000 0.0)",
+          "oklch(35% 0.000 0.0)",
+          "oklch(45% 0.000 0.0)",
+          "oklch(60% 0.000 0.0)",
+          "oklch(72% 0.000 0.0)",
+          "oklch(84% 0.000 0.0)",
+          "oklch(95% 0.000 0.0)"
+        ]
+      },
+      "warning-ink": {
+        "role": "neutral",
+        "displayName": "Warning Ink",
+        "canonical": "#111111",
+        "source": "kInk",
+        "tonalRamp": [
+          "oklch(15% 0.000 0.0)",
+          "oklch(25% 0.000 0.0)",
+          "oklch(35% 0.000 0.0)",
+          "oklch(45% 0.000 0.0)",
+          "oklch(60% 0.000 0.0)",
+          "oklch(72% 0.000 0.0)",
+          "oklch(84% 0.000 0.0)",
+          "oklch(95% 0.000 0.0)"
+        ]
+      },
+      "surround": {
+        "role": "neutral",
+        "displayName": "Cab Surround",
+        "canonical": "#0E1A14",
+        "source": "kSurround",
+        "tonalRamp": [
+          "oklch(15% 0.021 162.1)",
+          "oklch(25% 0.021 162.1)",
+          "oklch(35% 0.021 162.1)",
+          "oklch(45% 0.021 162.1)",
+          "oklch(60% 0.021 162.1)",
+          "oklch(72% 0.021 162.1)",
+          "oklch(84% 0.021 162.1)",
+          "oklch(95% 0.021 162.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Hero Figure",
+        "lvglFont": "bp_figures_84",
+        "glyphs": "0x2D-0x39",
+        "purpose": "Hero figure on Flight, Thermal, Navigation; magnitude only."
+      },
+      "headline": {
+        "displayName": "Distance-Line Figure",
+        "lvglFont": "bp_figures_38",
+        "glyphs": "0x20,0x25,0x2B-0x3A,0x6B,0x6D,0xB0",
+        "purpose": "Distance-line figures and the fallback for an over-wide hero figure."
+      },
+      "title": {
+        "displayName": "Row Value",
+        "lvglFont": "bp_text_22",
+        "glyphs": "0x20-0x7E,0xB0,0xB7",
+        "purpose": "Two-line row values, Navigation destination legend, error headline."
+      },
+      "label": {
+        "displayName": "Key and Unit",
+        "lvglFont": "bp_text_14",
+        "glyphs": "0x20-0x7E,0xB0,0xB7",
+        "purpose": "Page titles, keys, units, footer data and warnings, error advice."
+      },
+      "caption": {
+        "displayName": "Strip and Hint",
+        "lvglFont": "bp_text_11",
+        "glyphs": "0x20-0x7E,0xB0,0xB7",
+        "purpose": "Status strip, footer button hints, position key."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "refresh",
+        "value": "200ms",
+        "purpose": "Values update on a 200 ms refresh (kRefreshMs); no animated transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tft-portrait",
+        "value": "240x320"
+      }
+    ],
+    "platform": {
+      "target": "embedded",
+      "toolkit": "LVGL 8.3 on ESP32",
+      "lvglHeap": "64 KB; one page set about 48 KB",
+      "fontGenerator": "firmware/tools/gen_fonts.sh"
+    },
+    "glyphs": [
+      {
+        "name": "arrow",
+        "purpose": "Direction arrow. Head 92% x 62% of span, shaft 36% wide; shaft length 15-100% encodes strength; rotates to any bearing."
+      },
+      {
+        "name": "level",
+        "purpose": "Level bar, 92% x 30% of span, for |climb| < 0.2 m/s. Never for unknown values."
+      },
+      {
+        "name": "diamond",
+        "purpose": "Warning diamond, 14x14 in ink on the yellow footer."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Sign Panel (Flight page)",
+      "kind": "custom",
+      "refersTo": "sign-panel",
+      "description": "One road-sign panel per page: status strip, hero, white rule, distance lines, footer.",
+      "html": "<div class=\"ds-sign\"><div class=\"ds-strip\"><span class=\"ds-title\">FLIGHT</span><span class=\"ds-stat\">8 SAT 1:12 84%</span></div><div class=\"ds-hero\"><svg class=\"ds-arrow\" viewBox=\"0 0 48 100\" width=\"48\" height=\"100\"><polygon points=\"24,0 46,30 2,30\" fill=\"#FFFFFF\"/><rect x=\"15.4\" y=\"29\" width=\"17.3\" height=\"71\" fill=\"#FFFFFF\"/></svg><span class=\"ds-fig\">5.8</span><span class=\"ds-unit\">m/s</span></div><div class=\"ds-rule\"></div><div class=\"ds-line\"><span class=\"ds-key\">ALT</span><span class=\"ds-val\">1353</span><span class=\"ds-u\">m</span></div><div class=\"ds-line\"><span class=\"ds-key\">L/D</span><span class=\"ds-val\">-</span><span class=\"ds-u\"></span></div></div>",
+      "css": ".ds-sign{width:232px;height:312px;box-sizing:border-box;background:#00613F;color:#FFFFFF;border:3px solid #FFFFFF;border-radius:8px;padding:0 6px;font-family:'Overpass',sans-serif;font-weight:800;text-transform:uppercase;outline:6px solid #0E1A14;}.ds-strip{display:flex;justify-content:space-between;height:26px;align-items:center;}.ds-title{font-size:14px;letter-spacing:1px;}.ds-stat{font-size:11px;}.ds-hero{position:relative;display:flex;align-items:flex-start;gap:8px;height:110px;padding-left:2px;}.ds-fig{font-weight:900;font-size:84px;line-height:1;}.ds-unit{position:absolute;right:3px;bottom:2px;font-size:14px;text-transform:none;}.ds-rule{height:3px;background:#FFFFFF;}.ds-line{display:flex;align-items:baseline;height:44px;}.ds-key{font-size:14px;letter-spacing:1px;flex:1;}.ds-val{font-weight:900;font-size:38px;}.ds-u{width:46px;text-align:right;font-size:14px;text-transform:none;}"
+    },
+    {
+      "name": "Error Sign",
+      "kind": "custom",
+      "refersTo": "sign-panel-warning",
+      "description": "The whole panel becomes a yellow warning sign with ink legends and no title.",
+      "html": "<div class=\"ds-sign-warn\"><p class=\"ds-err\">SYSTEM ERROR</p><p class=\"ds-adv\">USE YOUR MAIN INSTRUMENT.<br>RESTART IF THIS STAYS.</p><p class=\"ds-adv\">CANCEL  BACK TO FLIGHT</p></div>",
+      "css": ".ds-sign-warn{width:232px;height:312px;box-sizing:border-box;background:#FFC20E;color:#111111;border:3px solid #111111;border-radius:8px;font-family:'Overpass',sans-serif;font-weight:800;text-align:center;display:flex;flex-direction:column;justify-content:space-around;padding:60px 6px 12px;}.ds-err{font-size:22px;margin:0;}.ds-adv{font-size:14px;line-height:1.5;margin:0;}"
+    },
+    {
+      "name": "Distance Line",
+      "kind": "custom",
+      "refersTo": "distance-line",
+      "description": "Key left, 38 px figure right, unit in a 46 px column, shared baseline.",
+      "html": "<div class=\"ds-dl\"><span class=\"ds-dl-key\">GS</span><span class=\"ds-dl-val\">125</span><span class=\"ds-dl-u\">km/h</span></div>",
+      "css": ".ds-dl{display:flex;align-items:baseline;width:214px;height:44px;padding:0 3px;background:#00613F;color:#FFFFFF;font-family:'Overpass',sans-serif;font-weight:800;}.ds-dl-key{flex:1;font-size:14px;letter-spacing:1px;}.ds-dl-val{font-weight:900;font-size:38px;}.ds-dl-u{width:46px;text-align:right;font-size:14px;}"
+    },
+    {
+      "name": "Footer Warning",
+      "kind": "custom",
+      "refersTo": "footer-warning",
+      "description": "The footer band turns into a yellow sign with the diamond glyph when a warning is up.",
+      "html": "<div class=\"ds-foot\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><polygon points=\"7,0 14,7 7,14 0,7\" fill=\"#111111\"/></svg><span>NO GPS FIX</span></div>",
+      "css": ".ds-foot{display:flex;align-items:center;gap:6px;width:214px;height:22px;box-sizing:border-box;padding:0 6px;border-radius:3px;background:#FFC20E;color:#111111;font-family:'Overpass',sans-serif;font-weight:800;font-size:14px;}.ds-foot span{flex:1;text-align:center;}"
+    },
+    {
+      "name": "Footer Hint",
+      "kind": "custom",
+      "refersTo": "footer-warning",
+      "description": "Resting footer: 11 px button hint in white on green.",
+      "html": "<div class=\"ds-hint\">UP/DOWN  PAGE</div>",
+      "css": ".ds-hint{width:214px;height:22px;line-height:22px;text-align:center;background:#00613F;color:#FFFFFF;font-family:'Overpass',sans-serif;font-weight:800;font-size:11px;white-space:pre;}"
+    },
+    {
+      "name": "Setting Row",
+      "kind": "custom",
+      "refersTo": "setting-row-focused",
+      "description": "Two-line setting row; the focused row inverts to a white band with green text.",
+      "html": "<div class=\"ds-set-wrap\"><button class=\"ds-set\"><span>VOLUME</span><b>HIGH</b></button><button class=\"ds-set ds-set-on\"><span>LIFT TONE</span><b>+0.2 m/s</b></button></div>",
+      "css": ".ds-set-wrap{background:#00613F;padding:6px;width:226px;}.ds-set{display:flex;flex-direction:column;align-items:flex-start;width:214px;height:50px;padding:3px 5px;margin-bottom:6px;border:0;border-radius:3px;background:transparent;color:#FFFFFF;font-family:'Overpass',sans-serif;font-weight:800;}.ds-set span{font-size:14px;letter-spacing:1px;}.ds-set b{font-size:22px;}.ds-set-on,.ds-set:focus-visible{background:#FFFFFF;color:#00613F;outline:none;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Direction Sign",
+    "overview": "Every page is one highway guide sign: a retroreflective green panel with a white border, white legends in a road-sign face, and a single white rule dividing the sign into sections. Figures are set as sign legends, big and heavy, so climb, height and glide read in about one second from a cockpit pod in direct sun. The system refuses the instrument-category default of a grid of boxes with a side vario bar.\n\nDensity is low by design. Each page has one hero (a sign glyph beside an 84 px figure) and a short stack of distance lines below it. Meaning is carried by shape and position as well as colour: lift and sink are different arrows, warnings are a different sign. There is no depth, no ornament and no motion beyond values changing on a 200 ms refresh.\n\nThe palette has one job per colour. Green is the ground, white is every legend, yellow means something is wrong and nothing else.",
+    "keyCharacteristics": [
+      "One road-sign panel per page, 3 px white border, 8 px corners, on a near-black surround.",
+      "Hero row: polygon sign glyph plus 84 px Overpass Black figure, magnitude only.",
+      "Distance lines: key left, 38 px figure right, unit in its own column.",
+      "Yellow is reserved for warnings and the error sign.",
+      "Unknown values are a single dash with the glyph hidden.",
+      "Flat: no cards, shadows, gradients or colour-only meaning."
+    ],
+    "rules": [
+      {
+        "name": "The Yellow Means Trouble Rule",
+        "body": "Warning yellow appears only when something is wrong: a footer warning sign or the error panel. If a surface is yellow and nothing is wrong, it is a bug.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shape Carries Meaning Rule",
+        "body": "Every colour signal has a shape twin: the footer warning adds the diamond glyph, sink is a down arrow and not a red number, level is a bar. The UI must read correctly on a monochrome panel.",
+        "section": "colors"
+      },
+      {
+        "name": "The Generated Sizes Rule",
+        "body": "Only the five generated fonts exist. A new size or glyph means editing `gen_fonts.sh` and paying for it in flash; never approximate with scaling.",
+        "section": "typography"
+      },
+      {
+        "name": "The All-Caps Legend Rule",
+        "body": "Every word on the sign is upper case, EN and ID alike, in short aviation abbreviations (ALT, GS, L/D).",
+        "section": "typography"
+      },
+      {
+        "name": "The One Sign Rule",
+        "body": "A page is exactly one sign panel. Sections are divided by the white rule, never by nested boxes.",
+        "section": "layout"
+      },
+      {
+        "name": "The Clip, Don't Collide Rule",
+        "body": "When two legends share a line, the lower-priority one gets the remaining width and clips. Hero figures too wide for their room drop to 38 px rather than run into the unit.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Sign Rule",
+        "body": "A road sign has no depth. No shadows, gradients, glows or cards, on any page.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do build every page from one 232x312 sign panel at (4,4) with a 3 px border and 8 px corners.",
+      "Do separate the hero from the distance lines with the single 3 px white rule.",
+      "Do print hero figures as magnitude only and let the arrow carry direction.",
+      "Do show an unknown figure as a single \"-\" and hide its glyph.",
+      "Do use the five generated fonts at their generated sizes only.",
+      "Do keep the LVGL heap budget in mind: 64 KB total, one page set about 48 KB. Free the old pages before rebuilding (language change), never hold two sets.",
+      "Do invert the focused settings row (white band, green text) as the only focus treatment."
+    ],
+    "donts": [
+      "Don't use warning yellow for anything that is not a warning or the error sign.",
+      "Don't show stale data as a figure, struck through or dimmed; a struck-through number still reads as live in a one-second glance.",
+      "Don't show the level bar for an unknown value; it would claim level flight.",
+      "Don't use cards, nested boxes, shadows, gradients or transparency.",
+      "Don't signal anything with colour alone; pair it with a glyph, shape or position.",
+      "Don't add a side vario bar or a grid of boxed readouts."
+    ]
+  }
+}

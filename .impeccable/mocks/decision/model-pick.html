@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --sign:#00613F; --legend:#FFFFFF; --warn:#FFC20E; --ink:#111111; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { width:240px; height:320px; overflow:hidden; background:#0E1A14; font-family:'Overpass',sans-serif; }
+  .panel { position:absolute; inset:4px; background:var(--sign); border:3px solid var(--legend);
+           border-radius:8px; color:var(--legend); }
+  .top { display:flex; justify-content:space-between; padding:5px 9px 0; font-size:11px; font-weight:800; letter-spacing:.05em; }
+  .climb { display:flex; align-items:center; gap:4px; padding:4px 8px 0; height:112px; }
+  .arrow { width:0; height:0; border-left:26px solid transparent; border-right:26px solid transparent;
+           border-bottom:44px solid var(--legend); margin-top:-18px; }
+  .climb .num { font-weight:900; font-size:84px; line-height:1; letter-spacing:-2px; }
+  .climb .u { font-size:13px; font-weight:800; align-self:flex-end; margin-bottom:22px; }
+  .bar { height:3px; background:var(--legend); margin:0 9px; }
+  .line { display:flex; justify-content:space-between; align-items:baseline; padding:0 11px; height:46px; }
+  .line .k { font-size:14px; font-weight:800; letter-spacing:.06em; }
+  .line .v { font-size:38px; font-weight:900; line-height:46px; }
+  .line .v small { font-size:14px; font-weight:800; margin-left:3px; }
+  .warn { position:absolute; left:9px; right:9px; bottom:8px; height:30px; background:var(--warn); color:var(--ink);
+          border-radius:4px; display:flex; align-items:center; justify-content:center; gap:6px;
+          font-size:13px; font-weight:900; letter-spacing:.04em; }
+  .warn i { width:14px; height:14px; border:2px solid var(--ink); transform:rotate(45deg); display:inline-block; }
+</style></head>
+<body>
+  <div class="panel">
+    <div class="top"><span>FLIGHT</span><span>GPS 9 · 1:42</span></div>
+    <div class="climb"><div class="arrow"></div><span class="num">2.4</span><span class="u">m/s</span></div>
+    <div class="bar"></div>
+    <div class="line"><span class="k">ALT</span><span class="v">1842<small>m</small></span></div>
+    <div class="line"><span class="k">GS</span><span class="v">38<small>km/h</small></span></div>
+    <div class="line"><span class="k">L/D</span><span class="v">9.5</span></div>
+    <div class="warn"><i></i>AVG CLIMB +1.8</div>
+  </div>
+</body></html>
