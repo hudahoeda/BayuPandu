@@ -61,6 +61,15 @@ public:
         serialPrintln_call_count_++;
     }
 
+    int serialAvailable() override {
+        return static_cast<int>(serial_input_.size() - serial_input_pos_);
+    }
+
+    int serialRead() override {
+        if (serial_input_pos_ >= serial_input_.size()) return -1;
+        return static_cast<unsigned char>(serial_input_[serial_input_pos_++]);
+    }
+
     uint8_t getLedBuiltinPin() override {
         return 13; // Mock LED pin (ArduinoFake default)
     }
@@ -83,6 +92,11 @@ public:
         }
     }
     
+    void setSerialInput(const std::string& input) {
+        serial_input_ = input;
+        serial_input_pos_ = 0;
+    }
+
     bool wasSerialBeginCalled() const { return serial_begin_called_; }
     uint32_t getSerialBaud() const { return serial_baud_; }
     const std::string& getSerialOutput() const { return serial_output_; }
@@ -102,6 +116,8 @@ public:
         serial_begin_called_ = false;
         serial_baud_ = 0;
         serial_output_.clear();
+        serial_input_.clear();
+        serial_input_pos_ = 0;
         
         // Reset call counters
         delay_call_count_ = 0;
@@ -119,6 +135,8 @@ private:
     bool serial_begin_called_ = false;
     uint32_t serial_baud_ = 0;
     std::string serial_output_;
+    std::string serial_input_;
+    size_t serial_input_pos_ = 0;
     
     // Call counters for verification
     int delay_call_count_ = 0;

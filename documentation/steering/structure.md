@@ -49,9 +49,9 @@ firmware/
 │       ├── Screens.*              # Individual screen implementations (✅ All screens redesigned)
 │       └── InputManager.*        # Button input handling (✅ LVGL integration)
 ├── lib/              # Project-specific libraries
-└── test/             # Unit tests with ArduinoFake support (✅ Framework ready)
-    ├── test_*.cpp    # Unit test implementations
-    └── mocks/        # Mock objects for testing (✅ Complete)
+└── test/             # GoogleTest suites, run on the host with `pio test -e native`
+    ├── test_<suite>/ # One folder per suite, each with its own main() (e.g. test_vario/)
+    └── mocks/        # Mock HAL objects shared by the suites
 ```
 
 ## Development Workflow

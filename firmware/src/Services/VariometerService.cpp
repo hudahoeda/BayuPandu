@@ -4,64 +4,63 @@ VariometerService::VariometerService(IBarometer& barometer, IAudio& audio, IArdu
     : barometer(barometer),
       audio(audio),
       arduino(arduino),
-      verticalSpeed(0.0f),
-      q(0.00001f), // process noise covariance
-      r(0.01f),   // measurement noise covariance
-      p(1.0f),    // estimation error covariance
-      k(0.0f),    // kalman gain
-      x(0.0f)     // value
+      filter(),
+      lastSampleMs(0),
+      lastReadOk(false)
 {
-    // Initialize altitude value
-    float pressure;
-    if (barometer.readPressure(pressure))
-    {
-        x = barometer.calculateAltitude(pressure);
-    }
 }
 
 void VariometerService::update()
 {
-    static unsigned long lastTime = 0;
-    unsigned long currentTime = arduino.millis();
-    float dt = (currentTime - lastTime) / 1000.0f;
-    lastTime = currentTime;
-
-    if (dt > 0)
+    float pressure;
+    if (!barometer.readPressure(pressure))
     {
-        float pressure;
-        float altitude = x; // Default to previous altitude
-        if (barometer.readPressure(pressure))
-        {
-            altitude = barometer.calculateAltitude(pressure);
-        }
+        // Keep the last estimate but stop claiming it is live; the filter
+        // restarts on the next good reading if the gap grew too long.
+        lastReadOk = false;
+        audio.noTone();
+        return;
+    }
 
-        // Kalman filter prediction
-        p = p + q;
+    uint32_t now = arduino.millis();
+    float dt = filter.isInitialized() ? (now - lastSampleMs) / 1000.0f : 0.0f;
+    lastSampleMs = now;
 
-        // Kalman filter update
-        k = p / (p + r);
-        x = x + k * (altitude - x);
-        p = (1 - k) * p;
+    filter.update(barometer.calculateAltitude(pressure), dt);
+    lastReadOk = true;
+    updateAudio();
+}
 
-        verticalSpeed = (x - verticalSpeed) / dt;
-
-        // Simple audio logic
-        if (verticalSpeed > 0.5)
-        {
-            audio.tone(1000 + verticalSpeed * 100, 100);
-        }
-        else if (verticalSpeed < -0.5)
-        {
-            audio.tone(500 + verticalSpeed * 50, 100);
-        }
-        else
-        {
-            audio.noTone();
-        }
+void VariometerService::updateAudio()
+{
+    float vs = filter.verticalSpeed();
+    if (vs >= kClimbToneThreshold)
+    {
+        float hz = 700.0f + vs * 150.0f;
+        audio.tone(static_cast<unsigned int>(hz > 2000.0f ? 2000.0f : hz), 100);
+    }
+    else if (vs <= kSinkAlarmThreshold)
+    {
+        float hz = 400.0f + vs * 20.0f;
+        audio.tone(static_cast<unsigned int>(hz < 200.0f ? 200.0f : hz), 100);
+    }
+    else
+    {
+        audio.noTone();
     }
 }
 
 float VariometerService::getVerticalSpeed() const
 {
-    return verticalSpeed;
+    return filter.verticalSpeed();
+}
+
+float VariometerService::getAltitude() const
+{
+    return filter.altitude();
+}
+
+bool VariometerService::hasData() const
+{
+    return lastReadOk && filter.isInitialized();
 }

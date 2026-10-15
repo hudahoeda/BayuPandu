@@ -6,7 +6,7 @@
 
 using namespace fakeit;
 
-void test_arduino_fake_impl() {
+TEST(ArduinoFakeImplTest, ForwardsCallsToArduinoFake) {
     // Reset ArduinoFake state
     ArduinoFakeReset();
 
@@ -21,6 +21,9 @@ void test_arduino_fake_impl() {
     auto time3 = arduino.millis();
     
     // Verify the sequence
+    EXPECT_EQ(time1, 1000u);
+    EXPECT_EQ(time2, 2000u);
+    EXPECT_EQ(time3, 3000u);
     Verify(Method(ArduinoFake(), millis)).Exactly(3_Times);
     
     // Test digitalWrite and pinMode
@@ -38,7 +41,7 @@ void test_arduino_fake_impl() {
     // Test delay
     When(Method(ArduinoFake(), delay)).AlwaysReturn();
     arduino.delay(1000);
-    Verify(Method(ArduinoFake(), delay).Using(1000)).Once();
+    Verify(Method(ArduinoFake(), delay).Using(1000ul)).Once();
     
     // Test Serial functions
     When(OverloadedMethod(ArduinoFake(Serial), begin, void(unsigned long))).AlwaysReturn();
@@ -46,17 +49,22 @@ void test_arduino_fake_impl() {
     When(OverloadedMethod(ArduinoFake(Serial), println, size_t(const char*))).AlwaysReturn();
     
     arduino.serialBegin(115200);
-    arduino.serialPrint("Test");
-    arduino.serialPrintln("Line");
+    // fakeit compares const char* by address, so pass the same pointers it checks.
+    const char* text = "Test";
+    const char* line = "Line";
+    arduino.serialPrint(text);
+    arduino.serialPrintln(line);
     
-    Verify(OverloadedMethod(ArduinoFake(Serial), begin, void(unsigned long)).Using(115200)).Once();
-    Verify(OverloadedMethod(ArduinoFake(Serial), print, size_t(const char*)).Using("Test")).Once();
-    Verify(OverloadedMethod(ArduinoFake(Serial), println, size_t(const char*)).Using("Line")).Once();
+    Verify(OverloadedMethod(ArduinoFake(Serial), begin, void(unsigned long)).Using(115200ul)).Once();
+    Verify(OverloadedMethod(ArduinoFake(Serial), print, size_t(const char*)).Using(text)).Once();
+    Verify(OverloadedMethod(ArduinoFake(Serial), println, size_t(const char*)).Using(line)).Once();
 }
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    if (RUN_ALL_TESTS()) {}
+    // Always exit 0 so PlatformIO parses the results itself.
+    return 0;
 }
 
 

@@ -161,3 +161,10 @@ TEST_F(MockStorageTest, FileOperations) {
 }
 
 
+
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    if (RUN_ALL_TESTS()) {}
+    // Always exit 0 so PlatformIO parses the results itself.
+    return 0;
+}

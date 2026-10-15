@@ -34,15 +34,12 @@ bool DataFusionManager::isDataValid() const {
 }
 
 void DataFusionManager::fuseAltitudeData() {
-    // Primary altitude from barometric sensor via VariometerService
-    fusedFlightData.altitude = gpsService.getGPSData().altitude; // This will be updated when VariometerService provides altitude
-    fusedFlightData.verticalSpeed = variometerService.getVerticalSpeed();
-    
-    // Use GPS altitude as backup or for validation
-    GPSData gpsData = gpsService.getGPSData();
-    if (gpsData.hasValidFix) {
-        // Could implement altitude fusion here
-        // For now, prefer barometric altitude for vertical speed calculations
+    // Altitude and climb come from the barometer only. Without it the data goes
+    // stale and the display shows unknown, rather than a GPS-derived 0 m/s that
+    // would read as level flight.
+    if (variometerService.hasData()) {
+        fusedFlightData.altitude = variometerService.getAltitude();
+        fusedFlightData.verticalSpeed = variometerService.getVerticalSpeed();
         fusedFlightData.timestamp = arduino.millis();
     }
 }

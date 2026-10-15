@@ -70,11 +70,11 @@ lib_deps =
 # Monitor serial output
 /home/huda/.platformio/penv/bin/pio device monitor
 
-# Run unit tests
-/home/huda/.platformio/penv/bin/pio test
-
-# Run tests on specific environment  
+# Run unit tests on the host (no hardware needed)
 /home/huda/.platformio/penv/bin/pio test -e native
+
+# Run one suite
+/home/huda/.platformio/penv/bin/pio test -e native -f test_vario
 
 # Clean build files
 /home/huda/.platformio/penv/bin/pio run --target clean

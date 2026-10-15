@@ -390,6 +390,10 @@ int main(int argc, char** argv) {
     std::printf("Replaying %s from +%ld s for %s, looping\n", igcPath.c_str(), fromSec,
                 lengthSec > 0 ? (std::to_string(lengthSec) + " s").c_str() : "the whole flight");
 
+    if (!shotsDir.empty()) {
+        std::error_code ec;
+        std::filesystem::create_directories(shotsDir, ec);
+    }
     return shotsDir.empty() ? runInteractive(fw, speed, scale)
                             : runHeadless(fw, shotsDir, atSeconds);
 }
