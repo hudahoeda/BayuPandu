@@ -4,26 +4,30 @@
 #include "Services/FlightManager.h"
 #include "Services/ConfigService.h"
 #include "HAL/IArduino.h"
-#include "UI/InputManager.h" // Add InputManager include
+#include "UI/InputManager.h"
 #include "UI/LVGLInit.h"
+#include "UI/UiStrings.h"
 #include "lvgl.h"
-#include <memory>
 
 enum class DisplayScreen {
     MAIN_FLIGHT,
+    THERMAL,
     NAVIGATION,
-    SETTINGS,
     STATUS,
+    SETTINGS,
     ERROR
 };
 
+// The on-device UI: every page is a road-sign panel (green ground, white legends,
+// yellow warning signs). UP/DOWN cycle pages, CANCEL returns to Flight, ENTER edits
+// on the Settings page.
 class UserInterface {
 public:
     UserInterface(
         FlightManager& flightManager,
         ConfigService& configService,
         IArduino& arduino,
-        InputManager& inputManager // Add InputManager to constructor
+        InputManager& inputManager
     );
 
     void initialize();
@@ -33,67 +37,111 @@ public:
     void setScreen(DisplayScreen screen);
     DisplayScreen getCurrentScreen() const;
 
-    // Button handling
+    // Button handling: buttonId 0 = UP, 1 = DOWN, 2 = ENTER, 3 = CANCEL.
     void handleButtonAction(ButtonAction action, uint8_t buttonId);
-    
-    // Alert management
+
+    // A transient message from the system, shown as a yellow sign in the footer.
     void showAlert(const char* message, uint16_t durationMs = 3000);
     void clearAlert();
 
 private:
-    // Dependencies
+    static constexpr int kPageCount = 5;          // pages UP/DOWN cycle through
+    static constexpr int kSettingCount = 3;
+    static constexpr uint32_t kRefreshMs = 200;
+
+    // One labelled line on a sign: key on the left, figure and unit on the right.
+    struct SignRow {
+        lv_obj_t* key = nullptr;
+        lv_obj_t* value = nullptr;
+        lv_obj_t* unit = nullptr;
+        lv_obj_t* band = nullptr;   // background for the focused (inverted) state
+    };
+
+    struct SignPage {
+        lv_obj_t* screen = nullptr;
+        lv_obj_t* panel = nullptr;
+        lv_obj_t* title = nullptr;
+        lv_obj_t* strip = nullptr;
+        lv_obj_t* footer = nullptr;      // yellow when a warning is up
+        lv_obj_t* footerText = nullptr;
+        lv_obj_t* footerGlyph = nullptr; // warning diamond
+    };
+
     FlightManager& flightManager;
     ConfigService& configService;
     IArduino& arduino;
-    InputManager& inputManager; // Add InputManager member
+    InputManager& inputManager;
 
-    // LVGL screen objects
-    lv_obj_t* mainFlightScreen = nullptr;
-    lv_obj_t* navigationScreen = nullptr;
-    lv_obj_t* settingsScreen = nullptr;
-    lv_obj_t* statusScreen = nullptr;
-    lv_obj_t* errorScreen = nullptr;
-    
-    // Alert management
-    lv_obj_t* alertModal = nullptr;
-    lv_timer_t* alertTimer = nullptr;
+    SignPage pages[kPageCount + 1];   // indexed by DisplayScreen
 
-    // Screen management
-    DisplayScreen currentScreenType;
-    lv_obj_t* currentScreenObj = nullptr;
+    // Flight page
+    lv_obj_t* climbArrow = nullptr;
+    lv_obj_t* climbValue = nullptr;
+    lv_obj_t* climbUnit = nullptr;
+    SignRow altRow, speedRow, glideRow;
 
-    // UI state
-    uint32_t lastUpdate;
-    bool displayActive;
+    // Thermal page
+    lv_obj_t* thermalArrow = nullptr;
+    lv_obj_t* thermalValue = nullptr;
+    lv_obj_t* thermalCaption = nullptr;
+    SignRow gainRow, thermalTimeRow, thermalAltRow;
 
-    // Screen refresh rates (ms)
-    static const uint32_t MAIN_REFRESH_RATE = 500;    // 2 Hz for main flight screen
-    static const uint32_t NAV_REFRESH_RATE = 1000;    // 1 Hz for navigation
-    static const uint32_t STATUS_REFRESH_RATE = 2000; // 0.5 Hz for status
-    static const uint32_t SETTINGS_REFRESH_RATE = 100; // 10 Hz for responsive settings
+    // Navigation page
+    lv_obj_t* takeoffArrow = nullptr;
+    lv_obj_t* takeoffValue = nullptr;
+    lv_obj_t* takeoffUnit = nullptr;
+    lv_obj_t* takeoffKey = nullptr;
+    SignRow trackRow, gpsAltRow;
+    lv_obj_t* positionKey = nullptr;
+    lv_obj_t* positionValue = nullptr;
 
-    // Screen creation methods
-    lv_obj_t* createMainFlightScreen();
-    lv_obj_t* createNavigationScreen();
-    lv_obj_t* createSettingsScreen();
-    lv_obj_t* createStatusScreen();
-    lv_obj_t* createErrorScreen();
-    
-    // Screen update methods
-    void updateMainFlightScreen();
-    void updateNavigationScreen();
-    void updateSettingsScreen();
-    void updateStatusScreen();
-    void updateErrorScreen();
-    
-    // Alert helpers
-    void createAlert(const char* message, uint16_t durationMs);
-    static void alertTimerCallback(lv_timer_t* timer);
-    
-    // Button event handlers
-    static void buttonEventHandler(lv_event_t* e);
-    
-    // Helper methods
-    void loadCurrentScreen();
-    bool shouldUpdateScreen();
+    // Status page
+    SignRow systemRow, gpsRow, batteryRow, logRow, replayRow;
+
+    // Settings page
+    SignRow settingRows[kSettingCount];
+    bool editingSettings = false;
+    int focusedSetting = 0;
+
+    // Error page
+    lv_obj_t* errorMessage = nullptr;
+    lv_obj_t* errorDetail = nullptr;
+    lv_obj_t* errorAdvice = nullptr;
+
+    DisplayScreen currentScreen = DisplayScreen::MAIN_FLIGHT;
+    SystemState lastSystemState = SystemState::INITIALIZING;
+    uint32_t lastUpdate = 0;
+    uint8_t builtLanguage = 0xFF;
+
+    const char* alertMessage = nullptr;
+    uint32_t alertUntil = 0;
+
+    const UiStrings& text() const;
+
+    // Building
+    void buildAll();
+    SignPage buildPage(DisplayScreen screen, bool warningGround = false);
+    SignRow buildRow(lv_obj_t* panel, lv_coord_t y, lv_coord_t height, const lv_font_t* valueFont);
+    void buildFlightPage();
+    void buildThermalPage();
+    void buildNavigationPage();
+    void buildStatusPage();
+    void buildSettingsPage();
+    void buildErrorPage();
+
+    // Updating
+    void refresh();
+    void updateStrip(SignPage& page, const FlightData& data, const FlightStatsSnapshot& stats);
+    void updateFooter(SignPage& page, const char* warning, const char* hint, bool hintIsData = false);
+    const char* currentWarning(const FlightData& data) const;
+    void updateFlightPage(const FlightData& data, const FlightStatsSnapshot& stats);
+    void updateThermalPage(const FlightData& data, const FlightStatsSnapshot& stats);
+    void updateNavigationPage(const FlightData& data, const FlightStatsSnapshot& stats);
+    void updateStatusPage(const FlightData& data);
+    void updateSettingsPage();
+    void setClimbGlyph(lv_obj_t* glyph, float vs, bool known);
+    void setHeroFigure(lv_obj_t* label, const char* value);
+
+    // Settings
+    void changeSetting(int index);
 };
