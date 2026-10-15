@@ -62,6 +62,7 @@ public:
     void enableSimulation(const std::string& igcFilePath);
     void disableSimulation();
     bool isSimulationActive() const;
+    SimulationService& getSimulationService() { return simulationService; }
 
 private:
     // Service dependencies

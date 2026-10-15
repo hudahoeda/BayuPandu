@@ -4,7 +4,7 @@
 // window (scaled 240x320 ILI9341 framebuffer), keyboard keys stand in for the four
 // buttons, and an IGC file is replayed through FlightManager's simulation mode.
 //
-//   bayupandu_sim [igc] [--speed N] [--scale N]
+//   bayupandu_sim [igc] [--speed N] [--scale N] [--no-gps] [--no-data] [--battery PCT]
 //   bayupandu_sim [igc] --shots DIR [--at SECONDS]   (headless: one PNG per screen)
 
 #include <SDL.h>
@@ -25,7 +25,7 @@
 #include "HAL/BarometerImpl.h"
 #include "HAL/GPSImpl.h"
 #include "HAL/IMUImpl.h"
-#include "HAL/PowerImpl.h"
+#include "HAL/IPower.h"
 #include "HAL/StorageImpl.h"
 #include "Services/ConfigService.h"
 #include "Services/FlightManager.h"
@@ -78,6 +78,29 @@ public:
     uint8_t getLedBuiltinPin() override { return PIN_LED_BUILTIN; }
 };
 
+// Battery with a charge the simulator can set, so the low and critical battery
+// warnings can be seen. PowerService maps voltage linearly from the critical
+// level (0%) to 4.2 V (100%), so the voltage is derived from that same scale.
+class SimPower : public IPower {
+public:
+    bool initialize() override { return true; }
+    float getBatteryVoltage() override { return voltage; }
+    uint8_t getBatteryPercentage() override { return percent; }
+    bool isCharging() override { return false; }
+    void enterLowPowerMode() override {}
+
+    void setPercent(int pct, float criticalVolts) {
+        percent = static_cast<uint8_t>(std::clamp(pct, 0, 100));
+        // A hair above the exact step so integer truncation lands on `pct`.
+        voltage = criticalVolts + (4.2f - criticalVolts) * (percent + 0.5f) / 100.0f;
+    }
+    int getPercent() const { return percent; }
+
+private:
+    uint8_t percent = 100;
+    float voltage = 4.2f;
+};
+
 // ---------------------------------------------------------------------------
 // Framebuffer: LVGL flushes RGB565 areas here; SDL / PNG read from it.
 
@@ -114,7 +137,7 @@ struct Firmware {
     AudioImpl audio;
     GPSImpl gps;
     IMUImpl imu;
-    PowerImpl power;
+    SimPower power;
     StorageImpl storage;
 
     ConfigService* configService = nullptr;
@@ -124,6 +147,17 @@ struct Firmware {
     PowerService* powerService = nullptr;
     FlightManager* flightManager = nullptr;
     UserInterface* userInterface = nullptr;
+
+    SimulationService& sim() { return flightManager->getSimulationService(); }
+
+    void setBattery(int pct) {
+        power.setPercent(pct, configService->getConfig().criticalBatteryLevel);
+    }
+
+    void printFaults() {
+        std::printf("faults: GPS %s, data %s, battery %d%%\n", sim().isGpsLost() ? "LOST" : "ok",
+                    sim().isBaroLost() ? "LOST" : "ok", power.getPercent());
+    }
 
     void setup() {
         configService = new ConfigService(storage);
@@ -151,7 +185,9 @@ struct Firmware {
     void loop() {
         LVGLInit::handler();
         flightManager->update();
-        if (!replayPath.empty() && !flightManager->getFusedFlightData().isValid) {
+        // Restart when the replay runs out (not merely when data is invalid, which
+        // the --no-data fault makes it on purpose).
+        if (!replayPath.empty() && !flightManager->getSimulationService().isActive()) {
             flightManager->enableSimulation(replayPath);
         }
     }
@@ -243,6 +279,28 @@ static int runHeadless(Firmware& fw, const std::string& dir, double atSeconds) {
             press(3);  // CANCEL: done
         }
     }
+
+    // Warning states, one fault at a time, on the Flight page where they matter most.
+    // The footer shows the most urgent: critical battery, no data, no GPS, low battery.
+    const struct { const char* name; bool gpsLost; bool baroLost; int battery; } faults[] = {
+        {"8-warn-no-gps", true, false, 100},
+        {"9-warn-low-battery", false, false, 15},
+        {"10-warn-critical-battery", false, false, 3},
+        {"11-warn-data-lost", false, true, 100},
+    };
+    fw.userInterface->setScreen(DisplayScreen::MAIN_FLIGHT);
+    for (const auto& f : faults) {
+        fw.sim().setGpsLost(f.gpsLost);
+        fw.sim().setBaroLost(f.baroLost);
+        fw.setBattery(f.battery);
+        if (!capture(f.name)) return 1;
+    }
+    // GPS loss also blanks ground speed and the navigation figures.
+    fw.sim().setBaroLost(false);
+    fw.setBattery(100);
+    fw.sim().setGpsLost(true);
+    fw.userInterface->setScreen(DisplayScreen::NAVIGATION);
+    if (!capture("12-navigation-no-gps")) return 1;
     return 0;
 }
 
@@ -258,6 +316,8 @@ static int runInteractive(Firmware& fw, double speed, int scale) {
     setvbuf(stdout, nullptr, _IOLBF, 0);
     std::puts("Keys: Up/Down = previous/next page, Enter = edit (Settings),");
     std::puts("      Esc/Backspace = CANCEL (back to Flight), S = screenshot, Q = quit");
+    std::puts("Faults: G = GPS lost on/off, D = data lost on/off, B = battery 100/15/3%");
+    fw.printFaults();
 
     auto keyToPin = [](SDL_Keycode key) -> int {
         switch (key) {
@@ -281,6 +341,19 @@ static int runInteractive(Firmware& fw, double speed, int scale) {
             if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
                 bool down = e.type == SDL_KEYDOWN;
                 if (down && e.key.keysym.sym == SDLK_q) running = false;
+                if (down && !e.key.repeat) {
+                    switch (e.key.keysym.sym) {
+                        case SDLK_g: fw.sim().setGpsLost(!fw.sim().isGpsLost()); fw.printFaults(); break;
+                        case SDLK_d: fw.sim().setBaroLost(!fw.sim().isBaroLost()); fw.printFaults(); break;
+                        case SDLK_b: {
+                            int pct = fw.power.getPercent();
+                            fw.setBattery(pct > 15 ? 15 : pct > 3 ? 3 : 100);
+                            fw.printFaults();
+                            break;
+                        }
+                        default: break;
+                    }
+                }
                 if (down && !e.key.repeat && e.key.keysym.sym == SDLK_s) {
                     std::string path = "bayupandu-" + std::to_string(++shotCount) + ".png";
                     if (savePng(path)) std::printf("wrote %s\n", path.c_str());
@@ -336,6 +409,8 @@ int main(int argc, char** argv) {
     double speed = 1.0;
     int scale = 2;
     uint8_t language = 0;
+    bool noGps = false, noData = false;
+    int battery = 100;
 
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -347,13 +422,20 @@ int main(int argc, char** argv) {
         else if (arg == "--lang") language = std::string(next()) == "id" ? 1 : 0;
         else if (arg == "--from") fromText = next();
         else if (arg == "--length") lengthSec = parseClock(next());
+        else if (arg == "--no-gps") noGps = true;
+        else if (arg == "--no-data") noData = true;
+        else if (arg == "--battery") battery = std::atoi(next());
         else if (arg == "-h" || arg == "--help") {
             std::puts("usage: bayupandu_sim [file.igc] [--from TIME] [--length TIME] [--speed N] [--scale N] [--lang en|id]\n"
+                      "                     [--no-gps] [--no-data] [--battery PCT]\n"
                       "       bayupandu_sim [file.igc] [--from TIME] [--length TIME] --shots DIR [--at SECONDS]\n"
                       "\n"
                       "Replays --length (default 3:00, 0 = whole flight) starting --from after the first\n"
                       "fix, looping. TIME is SECONDS, MM:SS or H:MM:SS. With no file, plays a thermal\n"
-                      "and glide from the bundled example flight.");
+                      "and glide from the bundled example flight.\n"
+                      "\n"
+                      "--no-gps, --no-data and --battery start with that fault; in the window,\n"
+                      "G, D and B toggle them. --shots also captures each warning state.");
             return 0;
         } else igcPath = arg;
     }
@@ -387,6 +469,9 @@ int main(int argc, char** argv) {
         return 2;
     }
     fw.replayPath = replay;
+    fw.sim().setGpsLost(noGps);
+    fw.sim().setBaroLost(noData);
+    fw.setBattery(battery);
     std::printf("Replaying %s from +%ld s for %s, looping\n", igcPath.c_str(), fromSec,
                 lengthSec > 0 ? (std::to_string(lengthSec) + " s").c_str() : "the whole flight");
 

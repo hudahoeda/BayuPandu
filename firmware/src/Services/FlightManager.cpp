@@ -56,7 +56,7 @@ void FlightManager::update() {
         simulatedData.gpsData = simulationService.getGPSData();
         simulatedData.attitude = simulationService.getAttitudeData();
         simulatedData.timestamp = arduino.millis(); // Use current simulation time
-        simulatedData.isValid = simulationService.isActive(); // Data is valid if simulation is active
+        simulatedData.isValid = simulationService.hasBaroData();
         
         dataFusion.setFusedFlightData(simulatedData);
 

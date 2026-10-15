@@ -71,7 +71,14 @@ void SimulationService::update() {
 }
 
 GPSData SimulationService::getGPSData() const {
-    return simulatedGPSData;
+    if (!gpsLost) return simulatedGPSData;
+    // What a receiver reports after losing the sky: last position, no fix.
+    GPSData lost = simulatedGPSData;
+    lost.hasValidFix = false;
+    lost.satellites = 0;
+    lost.speed = 0.0f;
+    lost.hdop = 99.9f;
+    return lost;
 }
 
 float SimulationService::getBarometricAltitude() const {

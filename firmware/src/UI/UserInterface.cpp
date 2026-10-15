@@ -471,22 +471,43 @@ const char* UserInterface::currentWarning(const FlightData& data) const {
 
 void UserInterface::updateStrip(SignPage& page, const FlightData& data, const FlightStatsSnapshot& stats) {
     const UiStrings& t = text();
-    char buf[48];
-    int n = 0;
-    if (flightManager.isSimulationActive()) n += std::snprintf(buf + n, sizeof(buf) - n, "SIM  ");
+    // Parts from least to most important. When the line is wider than the space the
+    // title leaves, parts are dropped from the front, so a word is never cut in half
+    // and battery charge is the last thing to go.
+    char sim[8] = "", gps[16] = "", airborne[12] = "", battery[8];
+    if (flightManager.isSimulationActive()) std::snprintf(sim, sizeof(sim), "SIM");
     if (!data.gpsData.hasValidFix) {
-        n += std::snprintf(buf + n, sizeof(buf) - n, "GPS -  ");
+        std::snprintf(gps, sizeof(gps), "GPS -");
     } else if (data.gpsData.satellites > 0) {
-        n += std::snprintf(buf + n, sizeof(buf) - n, t.satellitesFmt, (unsigned)data.gpsData.satellites);
-        n += std::snprintf(buf + n, sizeof(buf) - n, "  ");
+        std::snprintf(gps, sizeof(gps), t.satellitesFmt, (unsigned)data.gpsData.satellites);
     } else {
-        n += std::snprintf(buf + n, sizeof(buf) - n, "GPS  ");
+        std::snprintf(gps, sizeof(gps), "GPS");
     }
     if (stats.airborne) {
         uint32_t minutes = stats.airborneSeconds / 60;
-        n += std::snprintf(buf + n, sizeof(buf) - n, "%u:%02u  ", (unsigned)(minutes / 60), (unsigned)(minutes % 60));
+        std::snprintf(airborne, sizeof(airborne), "%u:%02u", (unsigned)(minutes / 60), (unsigned)(minutes % 60));
     }
-    std::snprintf(buf + n, sizeof(buf) - n, "%d%%", flightManager.getPowerService().getBatteryInfo().percentage);
+    std::snprintf(battery, sizeof(battery), "%d%%", flightManager.getPowerService().getBatteryInfo().percentage);
+    const char* parts[] = {sim, airborne, gps, battery};
+
+    lv_coord_t room = lv_obj_get_style_width(page.strip, 0);
+    lv_coord_t letterSpace = lv_obj_get_style_text_letter_space(page.strip, 0);
+    char buf[48];
+    for (size_t first = 0; first < sizeof(parts) / sizeof(parts[0]); first++) {
+        // Shown in reading order: SIM, GPS, airborne time, battery.
+        const char* ordered[] = {parts[0], parts[2], parts[1], parts[3]};
+        int n = 0;
+        buf[0] = '\0';
+        for (const char* part : ordered) {
+            bool dropped = false;
+            for (size_t d = 0; d < first; d++) dropped |= (part == parts[d]);
+            if (dropped || !*part) continue;
+            n += std::snprintf(buf + n, sizeof(buf) - n, "%s%s", n ? "  " : "", part);
+        }
+        lv_point_t size;
+        lv_txt_get_size(&size, buf, &bp_text_11, letterSpace, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        if (size.x <= room) break;
+    }
     setText(page.strip, buf);
 }
 
@@ -542,8 +563,9 @@ void UserInterface::updateFlightPage(const FlightData& data, const FlightStatsSn
     std::snprintf(buf, sizeof(buf), "%.0f", data.altitude);
     setText(altRow.value, known ? buf : kNoFigure);
 
+    // Ground speed is the GPS's own figure, so a lost barometer doesn't hide it.
     std::snprintf(buf, sizeof(buf), "%.0f", data.gpsData.speed * 3.6f);
-    setText(speedRow.value, (known && data.gpsData.hasValidFix) ? buf : kNoFigure);
+    setText(speedRow.value, data.gpsData.hasValidFix ? buf : kNoFigure);
 
     if (known && stats.hasGlideRatio && stats.glideRatio < 99.5f) {
         std::snprintf(buf, sizeof(buf), stats.glideRatio < 19.95f ? "%.1f" : "%.0f", stats.glideRatio);
