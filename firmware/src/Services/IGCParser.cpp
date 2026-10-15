@@ -1,4 +1,5 @@
 #include "IGCParser.h"
+#include "Geo.h"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -25,7 +26,33 @@ bool IGCParser::loadFromFile(const std::string& filePath) {
         }
     }
     file.close();
+    deriveMotion();
     return !records.empty();
+}
+
+void IGCParser::deriveMotion() {
+    const size_t n = records.size();
+    for (size_t i = 0; i < n; i++) {
+        // Track and speed over the segment leaving this fix (the last fix keeps the previous one).
+        size_t a = (i + 1 < n) ? i : (i > 0 ? i - 1 : i);
+        size_t b = (i + 1 < n) ? i + 1 : i;
+        if (a != b && records[b].timestamp > records[a].timestamp) {
+            float dt = (records[b].timestamp - records[a].timestamp) / 1000.0f;
+            records[i].speed = geo::distanceM(records[a].latitude, records[a].longitude,
+                                              records[b].latitude, records[b].longitude) / dt;
+            records[i].heading = geo::bearingDeg(records[a].latitude, records[a].longitude,
+                                                 records[b].latitude, records[b].longitude);
+        }
+
+        // Climb from a centred window of +/-2 fixes: altitude is logged in whole metres,
+        // so a single-second difference jumps between integers.
+        size_t lo = i >= 2 ? i - 2 : 0;
+        size_t hi = (i + 2 < n) ? i + 2 : n - 1;
+        if (records[hi].timestamp > records[lo].timestamp) {
+            float dt = (records[hi].timestamp - records[lo].timestamp) / 1000.0f;
+            records[i].climbRate = (records[hi].baroAltitude - records[lo].baroAltitude) / dt;
+        }
+    }
 }
 
 size_t IGCParser::getRecordCount() const {
@@ -81,8 +108,9 @@ bool IGCParser::parseBRecord(const std::string& line, IGCRecord& record) {
         // Example: If speed and heading are present in a known format (e.g., after 35 chars)
         // This part needs to be adapted based on actual IGC file examples if more detail is needed.
         // For now, let's assume speed and heading are not directly in the B-record we're parsing.
-        record.speed = 0.0f; // To be derived or set from more complete IGC parsing
+        record.speed = 0.0f;   // derived in deriveMotion()
         record.heading = 0.0f;
+        record.climbRate = 0.0f;
         record.numSatellites = 0;
         record.hdop = 99.9f;
 

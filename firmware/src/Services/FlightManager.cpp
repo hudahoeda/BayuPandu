@@ -59,6 +59,9 @@ void FlightManager::update() {
         simulatedData.isValid = simulationService.isActive(); // Data is valid if simulation is active
         
         dataFusion.setFusedFlightData(simulatedData);
+
+        // The battery is real hardware even while the flight is replayed.
+        powerService.update();
         
         // HealthMonitor and FlightLogger should ideally be adapted for simulation,
         // but for now, they will operate on the simulated fused data.
@@ -77,6 +80,8 @@ void FlightManager::update() {
         flightLogger.update(getFusedFlightData(), getFlightState());
     }
     
+    flightStats.update(getFusedFlightData(), arduino.millis());
+
     // Update UI if available
     if (userInterface) {
         userInterface->update();
@@ -176,6 +181,7 @@ SystemStateHandler* FlightManager::getStateHandler(SystemState state) {
 void FlightManager::enableSimulation(const std::string& igcFilePath) {
     if (simulationService.initialize(igcFilePath)) {
         simulationActiveFlag = true;
+        flightStats.reset();
         // Optionally, reset system state or inform UI
         if (userInterface) {
             userInterface->showAlert("Simulation Enabled", 2000);

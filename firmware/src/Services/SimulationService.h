@@ -47,5 +47,4 @@ private:
     void interpolateData(const IGCRecord& record1, const IGCRecord& record2, uint32_t currentTimeMillis);
     
     // Calculates vertical speed from altitude changes.
-    float calculateVerticalSpeed(float currentAltitude, float previousAltitude, uint32_t deltaTimeMillis);
 };

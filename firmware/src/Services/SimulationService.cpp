@@ -111,27 +111,19 @@ void SimulationService::interpolateData(const IGCRecord& record1, const IGCRecor
     // Interpolate barometric altitude
     float interpolatedBaroAltitude = record1.baroAltitude + (record2.baroAltitude - record1.baroAltitude) * factor;
     
-    // Calculate vertical speed based on interpolated barometric altitude
-    // This is a simplified calculation and might need to be refined for accuracy
-    if (simulatedBaroAltitude != 0.0f) { // Avoid division by zero on first run
-        simulatedVerticalSpeed = calculateVerticalSpeed(interpolatedBaroAltitude, simulatedBaroAltitude, (currentTimeMillis - simulatedGPSData.timestamp));
-    } else {
-        simulatedVerticalSpeed = 0.0f;
-    }
-    
+    // Climb comes pre-smoothed from the parser; differencing interpolated altitudes
+    // here would only reproduce the log's 1 m quantisation.
+    simulatedVerticalSpeed = record1.climbRate + (record2.climbRate - record1.climbRate) * factor;
+
     simulatedBaroAltitude = interpolatedBaroAltitude;
     simulatedGPSData.altitude = interpolatedGpsAltitude;
 
-    // Update GPS data fields
+    // Update GPS data fields. Track is the segment's own bearing; interpolating
+    // angles would swing the wrong way across north.
     simulatedGPSData.speed = record1.speed + (record2.speed - record1.speed) * factor;
-    simulatedGPSData.heading = record1.heading + (record2.heading - record1.heading) * factor;
+    simulatedGPSData.heading = record1.heading;
     simulatedGPSData.satellites = record1.numSatellites; // Use 'satellites' as per GPSData struct
     simulatedGPSData.hdop = record1.hdop;                   // Simplistic: just take from record1
     simulatedGPSData.timestamp = currentTimeMillis;
 }
 
-float SimulationService::calculateVerticalSpeed(float currentAltitude, float previousAltitude, uint32_t deltaTimeMillis) {
-    if (deltaTimeMillis == 0) return 0.0f;
-    float deltaTimeSeconds = (float)deltaTimeMillis / 1000.0f;
-    return (currentAltitude - previousAltitude) / deltaTimeSeconds;
-}

@@ -11,8 +11,9 @@ struct IGCRecord {
     double longitude;   // degrees
     float gpsAltitude;  // meters GPS altitude
     float baroAltitude; // meters barometric altitude
-    float speed;        // m/s (GPS ground speed)
-    float heading;      // degrees (GPS GPS track angle)
+    float speed;        // m/s (GPS ground speed), derived from consecutive fixes
+    float heading;      // degrees (GPS track angle), derived from consecutive fixes
+    float climbRate;    // m/s, baro altitude change smoothed over a few records
     uint8_t numSatellites;
     float hdop;         // horizontal dilution of precision
 };
@@ -42,6 +43,8 @@ private:
 
     // Helper to parse a single B-record line
     bool parseBRecord(const std::string& line, IGCRecord& record);
+    // Fills speed, heading and climb rate, which B-records don't carry.
+    void deriveMotion();
     double parseLatLon(const std::string& latLonStr);
     uint32_t parseTime(const std::string& timeStr);
 };

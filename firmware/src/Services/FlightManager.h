@@ -11,6 +11,7 @@
 #include "Services/FlightLogger.h"
 #include "Services/SystemStateHandlers.h"
 #include "Services/SimulationService.h" // Include SimulationService
+#include "Services/FlightStats.h"
 #include "HAL/IArduino.h"
 #include <memory>
 
@@ -45,6 +46,7 @@ public:
     
     // Data access
     FlightData getFusedFlightData() const;
+    const FlightStatsSnapshot& getFlightStats() const { return flightStats.get(); }
     bool isDataValid() const;
     
     // Health monitoring
@@ -79,6 +81,7 @@ private:
     HealthMonitor healthMonitor;
     FlightLogger flightLogger;
     SimulationService simulationService; // Add SimulationService instance
+    FlightStats flightStats;
     
     // State management
     SystemState currentState;

@@ -78,6 +78,7 @@ struct SystemConfig {
     float sinkThreshold = -2.5f;   // m/s
     
     // Display settings
+    uint8_t language = 0;         // 0 = English, 1 = Bahasa Indonesia
     uint8_t brightness = 80;
     uint16_t screenTimeout = 300; // seconds
     
