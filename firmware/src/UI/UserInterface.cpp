@@ -1,5 +1,6 @@
 #include "UserInterface.h"
 #include "UI/SignGlyph.h"
+#include "version.h"
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -342,6 +343,12 @@ void UserInterface::buildSettingsPage() {
         lv_obj_align(settingRows[i].key, LV_ALIGN_TOP_LEFT, 5, 3);
         lv_obj_align(settingRows[i].value, LV_ALIGN_BOTTOM_LEFT, 5, 1);
     }
+
+    // Not a setting, so it sits below the rows as a caption and focus never lands on it.
+    char version[40];
+    std::snprintf(version, sizeof(version), t.versionFmt, BAYUPANDU_VERSION);
+    lv_obj_t* versionLabel = legend(page.panel, &bp_text_11, version);
+    lv_obj_align(versionLabel, LV_ALIGN_TOP_LEFT, kInset + 3, kFooterY - 18);
 }
 
 void UserInterface::buildErrorPage() {

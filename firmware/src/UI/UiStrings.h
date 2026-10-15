@@ -58,6 +58,7 @@ struct UiStrings {
     const char* errorTitle;
     const char* errorHint;
     const char* errorAdvice;
+    const char* versionFmt;  // "VERSION %s"
 };
 
 inline const UiStrings& uiStrings(uint8_t language) {
@@ -72,6 +73,7 @@ inline const UiStrings& uiStrings(uint8_t language) {
         "NO GPS FIX", "NO SENSOR DATA", "LOW BATTERY", "BATTERY CRITICAL",
         "SYSTEM ERROR", "CANCEL  BACK TO FLIGHT",
         "USE YOUR MAIN INSTRUMENT.\nRESTART IF THIS STAYS.",
+        "BAYUPANDU  VERSION %s",
     };
     static const UiStrings id = {
         "TERBANG", "TERMAL", "NAVIGASI", "STATUS", "SETELAN",
@@ -84,6 +86,7 @@ inline const UiStrings& uiStrings(uint8_t language) {
         "GPS BELUM FIX", "DATA SENSOR HILANG", "BATERAI LEMAH", "BATERAI KRITIS",
         "GALAT SISTEM", "CANCEL  KEMBALI",
         "PAKAI INSTRUMEN UTAMA.\nNYALAKAN ULANG JIKA TETAP.",
+        "BAYUPANDU  VERSI %s",
     };
     return language == 1 ? id : en;
 }
