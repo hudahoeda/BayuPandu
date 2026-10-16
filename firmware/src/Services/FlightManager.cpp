@@ -38,6 +38,7 @@ void FlightManager::setUserInterface(UserInterface* ui) {
 bool FlightManager::initialize() {
     // Load configuration first
     configService.loadConfig();
+    flightLogger.initialize();
     
     // Set initial state
     setState(SystemState::INITIALIZING);
@@ -68,7 +69,7 @@ void FlightManager::update() {
         // HealthMonitor and FlightLogger should ideally be adapted for simulation,
         // but for now, they will operate on the simulated fused data.
         healthMonitor.update(); 
-        flightLogger.update(getFusedFlightData(), getFlightState());
+        flightLogger.update(getFusedFlightData(), arduino.millis());
     } else {
         // Update all services from real sensors
         variometerService.update();
@@ -79,7 +80,7 @@ void FlightManager::update() {
         // Update modular components
         dataFusion.fuseData(); // Uses data from real services
         healthMonitor.update();
-        flightLogger.update(getFusedFlightData(), getFlightState());
+        flightLogger.update(getFusedFlightData(), arduino.millis());
     }
     
     flightStats.update(getFusedFlightData(), arduino.millis());
@@ -108,6 +109,7 @@ void FlightManager::update() {
 void FlightManager::shutdown() {
     // Save any pending configuration
     configService.saveConfig();
+    flightLogger.endFlight();
     
     // Set system to safe state
     setState(SystemState::ERROR);
@@ -182,6 +184,8 @@ SystemStateHandler* FlightManager::getStateHandler(SystemState state) {
 
 void FlightManager::enableSimulation(const std::string& igcFilePath) {
     if (simulationService.initialize(igcFilePath)) {
+        // A replay starting (or starting over) is a new flight in the log.
+        flightLogger.endFlight();
         simulationActiveFlag = true;
         variometerService.setReplaySource(&replayBarometer);
         flightStats.reset();
@@ -247,7 +251,7 @@ SelfTestResult FlightManager::runSelfTest() {
     }
     result.gpsFix = gps.hasValidFix;
     result.satellites = gps.satellites;
-    result.storageOk = storage.isHealthy();
+    result.storageOk = flightLogger.getStatus() != FlightLogger::Status::NoCard;
     powerService.update();
     result.batteryPercent = powerService.getBatteryInfo().percentage;
     return result;

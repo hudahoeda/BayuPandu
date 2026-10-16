@@ -16,7 +16,7 @@ This project embraces the integrated instrument architecture, combining the scre
 *   **FAI-Compliant Design:** Built as a single, integrated instrument to meet FAI requirements for competition scoring
 *   **High-Precision Variometer:** Utilizes the MS5611 sensor capable of detecting altitude changes as small as 10cm for sensitive thermal detection
 *   **Advanced Data Filtering:** Implements Kalman filter algorithms to provide clean, responsive vertical speed readings by fusing barometric and accelerometer data
-*   **GPS & IGC Logging:** Features a U-blox GPS module for tracking and logs flights in the standardized IGC format to microSD card
+*   **GPS & IGC Logging:** Features a U-blox GPS module for tracking and logs flights in the standardized IGC format to microSD card, starting and stopping by itself ([how it works](documentation/flight-log.md))
 
 ### Display Technology
 *   **Sunlight-Readable Display Options:** 

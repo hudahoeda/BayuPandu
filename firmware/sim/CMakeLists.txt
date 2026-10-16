@@ -47,4 +47,5 @@ target_include_directories(bayupandu_sim PRIVATE
     ${FIRMWARE_DIR}/src)
 target_link_libraries(bayupandu_sim PRIVATE lvgl PkgConfig::SDL2)
 target_compile_definitions(bayupandu_sim PRIVATE
-    BAYUPANDU_EXAMPLE_IGC="${FIRMWARE_DIR}/../documentation/example/complex_example_lxn.igc")
+    BAYUPANDU_EXAMPLE_IGC="${FIRMWARE_DIR}/../documentation/example/complex_example_lxn.igc"
+    BAYUPANDU_SIM_CARD="${CMAKE_CURRENT_SOURCE_DIR}")

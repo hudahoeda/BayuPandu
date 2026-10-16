@@ -43,7 +43,11 @@ struct GPSData {
     float heading = 0.0f;            // degrees
     uint8_t satellites = 0;
     float hdop = 99.9f;              // horizontal dilution of precision
-    uint32_t timestamp = 0;       // GPS time
+    uint32_t timestamp = 0;       // GPS time: ms since midnight UTC
+    // UTC date of the fix; year 0 until the receiver has sent one.
+    uint16_t year = 0;
+    uint8_t month = 0;
+    uint8_t day = 0;
     bool hasValidFix = false;
 };
 

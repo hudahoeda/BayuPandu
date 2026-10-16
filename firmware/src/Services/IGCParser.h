@@ -39,8 +39,18 @@ public:
     // Checks if the parser has loaded any valid data.
     bool hasData() const;
 
+    // UTC date of the flight from the HFDTE header; year 0 if the file has none.
+    uint16_t getYear() const { return year; }
+    uint8_t getMonth() const { return month; }
+    uint8_t getDay() const { return day; }
+
 private:
     std::vector<IGCRecord> records;
+    uint16_t year = 0;
+    uint8_t month = 0, day = 0;
+
+    // HFDTE160815 or HFDTEDATE:160815,01
+    void parseDate(const std::string& line);
 
     // Helper to parse a single B-record line
     bool parseBRecord(const std::string& line, IGCRecord& record);

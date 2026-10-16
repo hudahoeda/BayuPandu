@@ -10,6 +10,8 @@ IGCParser::IGCParser() : records() {}
 
 bool IGCParser::loadFromFile(const std::string& filePath) {
     records.clear(); // Clear any previous data
+    year = 0;
+    month = day = 0;
     std::ifstream file(filePath);
     if (!file.is_open()) {
         // Handle error: file not found or cannot be opened
@@ -18,6 +20,7 @@ bool IGCParser::loadFromFile(const std::string& filePath) {
 
     std::string line;
     while (std::getline(file, line)) {
+        if (line.compare(0, 5, "HFDTE") == 0) parseDate(line);
         if (line.length() > 0 && line[0] == 'B') { // B-record for flight data
             IGCRecord record;
             if (parseBRecord(line, record)) {
@@ -64,6 +67,22 @@ void IGCParser::deriveMotion() {
         double offsetS = (records[i].timestamp - records[lo].timestamp) / 1000.0 - sumT / count;
         records[i].smoothAltitude = static_cast<float>(sumAlt / count + records[i].climbRate * offsetS);
     }
+}
+
+void IGCParser::parseDate(const std::string& line) {
+    size_t start = line.find_first_of("0123456789", 5);
+    if (start == std::string::npos || start + 6 > line.size()) return;
+    int digits[6];
+    for (int i = 0; i < 6; i++) {
+        char c = line[start + i];
+        if (c < '0' || c > '9') return;
+        digits[i] = c - '0';
+    }
+    int d = digits[0] * 10 + digits[1], m = digits[2] * 10 + digits[3], y = digits[4] * 10 + digits[5];
+    if (d < 1 || d > 31 || m < 1 || m > 12) return;
+    day = static_cast<uint8_t>(d);
+    month = static_cast<uint8_t>(m);
+    year = static_cast<uint16_t>(y < 80 ? 2000 + y : 1900 + y);  // IGC dates two-digit years
 }
 
 size_t IGCParser::getRecordCount() const {

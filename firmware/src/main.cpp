@@ -17,7 +17,11 @@
 #include "Services/FlightManager.h"
 #include "UI/UserInterface.h"
 #include "UI/InputManager.h"
+#ifdef ARDUINO
+#include "HAL/SdStorage.h"
+#else
 #include "HAL/StorageImpl.h"
+#endif
 #include "UI/LVGLInit.h"
 
 // Global Arduino abstraction
@@ -35,7 +39,26 @@ AudioImpl audio;
 GPSImpl gps;
 IMUImpl imu;
 PowerImpl power;
+#ifdef ARDUINO
+SdStorage storage;
+#else
 StorageImpl storage;
+#endif
+
+// Three characters from the chip's MAC address, unique enough to tell this
+// device's flight logs apart: the IGC serial number.
+static const char* deviceId() {
+  static char id[4] = "000";
+#ifdef ARDUINO
+  static const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  uint32_t v = static_cast<uint32_t>(ESP.getEfuseMac() >> 24) & 0xFFFFFF;
+  for (int i = 2; i >= 0; i--) {
+    id[i] = digits[v % 36];
+    v /= 36;
+  }
+#endif
+  return id;
+}
 
 // Services
 VariometerService* variometerService = nullptr;
@@ -63,6 +86,7 @@ void setup() {
   // Instantiate services
   Serial.println("Initializing services...");
   Serial.println("DEBUG: Before ConfigService instantiation");
+  storage.initialize();  // the card shares SPI with the display; claim it first
   configService = new ConfigService(storage);
   Serial.println("DEBUG: After ConfigService instantiation");
   Serial.println("DEBUG: Before VariometerService instantiation");
@@ -113,6 +137,7 @@ void setup() {
   // Connect UI to FlightManager
   Serial.println("DEBUG: Before flightManager->setUserInterface");
   flightManager->setUserInterface(userInterface);
+  flightManager->getFlightLogger().setDevice(deviceId(), "ESP32-S3");
   userInterface->setAudio(&audio);
   Serial.println("DEBUG: After flightManager->setUserInterface");
   

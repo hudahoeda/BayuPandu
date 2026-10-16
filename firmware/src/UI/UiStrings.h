@@ -35,7 +35,10 @@ struct UiStrings {
     const char* gpsFix;
     const char* gpsNoFix;
     const char* satellitesFmt;   // "%u SAT"
-    const char* logNotBuilt;
+    const char* logReady;
+    const char* logRecording;    // "REC", followed by the time recording
+    const char* logNoCard;
+    const char* logFailed;
     const char* stateStarting;
     const char* stateReady;
     const char* stateFlying;
@@ -79,7 +82,7 @@ inline const UiStrings& uiStrings(uint8_t language) {
         "ALT", "GS", "L/D", "AVG CLIMB", "TRACK", "TAKEOFF", "GPS ALT", "POSITION",
         "SYSTEM", "GPS", "BATTERY", "FLIGHT LOG", "REPLAY",
         "ON", "OFF", "CLIMBING", "LAST THERMAL", "NO THERMAL YET", "GAIN", "TIME", "FIX", "NO FIX", "%u SAT",
-        "NOT BUILT YET", "STARTING", "READY", "IN FLIGHT", "LOW POWER", "ERROR",
+        "READY", "REC", "NO CARD", "WRITE FAILED", "STARTING", "READY", "IN FLIGHT", "LOW POWER", "ERROR",
         "LANGUAGE", "ENGLISH", "VOLUME", {"OFF", "LOW", "MEDIUM", "HIGH"}, "LIFT TONE",
         "UP/DOWN  PAGE", "ENTER  EDIT", "ENTER  CHANGE    CANCEL  DONE",
         "NO GPS FIX", "NO SENSOR DATA", "LOW BATTERY", "BATTERY CRITICAL",
@@ -93,7 +96,7 @@ inline const UiStrings& uiStrings(uint8_t language) {
         "TINGGI", "KEC", "L/D", "RATA2 NAIK", "ARAH", "TAKEOFF", "ALT GPS", "POSISI",
         "SISTEM", "GPS", "BATERAI", "LOG TERBANG", "REPLAY",
         "NYALA", "MATI", "NAIK", "TERMAL TERAKHIR", "BELUM ADA TERMAL", "NAIK", "WAKTU", "FIX", "BELUM FIX", "%u SAT",
-        "BELUM DIBUAT", "MEMULAI", "SIAP", "TERBANG", "HEMAT DAYA", "GALAT",
+        "SIAP", "REKAM", "TANPA KARTU", "GAGAL TULIS", "MEMULAI", "SIAP", "TERBANG", "HEMAT DAYA", "GALAT",
         "BAHASA", "INDONESIA", "VOLUME", {"MATI", "PELAN", "SEDANG", "KERAS"}, "NADA NAIK",
         "UP/DOWN  HALAMAN", "ENTER  UBAH", "ENTER  GANTI    CANCEL  SELESAI",
         "GPS BELUM FIX", "DATA SENSOR HILANG", "BATERAI LEMAH", "BATERAI KRITIS",

@@ -13,4 +13,5 @@ public:
     bool writeFile(const char* path, const char* buffer) override { return true; }
     bool appendFile(const char* path, const char* buffer) override { return true; }
     bool deleteFile(const char* path) override { return true; }
+    bool makeDir(const char* path) override { return true; }
 };

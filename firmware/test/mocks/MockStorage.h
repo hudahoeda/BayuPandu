@@ -3,6 +3,7 @@
 
 #include "HAL/IStorage.h"
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include <cstring>
@@ -72,7 +73,15 @@ public:
         return files_.erase(path) > 0;
     }
 
+    bool makeDir(const char* path) override {
+        if (!is_healthy_) return false;
+        dirs_.insert(path);
+        return true;
+    }
+
     // --- Inspection Methods ---
+    bool hasDir(const char* path) const { return dirs_.count(path) > 0; }
+    const std::map<std::string, std::string>& getFiles() const { return files_; }
     bool wasInitializeCalled() const { return initialize_called_; }
     int getReadConfigCallCount() const { return readConfig_call_count_; }
     int getWriteConfigCallCount() const { return writeConfig_call_count_; }
@@ -93,6 +102,7 @@ public:
         deleteFile_call_count_ = 0;
         config_ = SystemConfig{};
         files_.clear();
+        dirs_.clear();
     }
 
 private:
@@ -106,6 +116,7 @@ private:
     int deleteFile_call_count_ = 0;
     SystemConfig config_{};
     std::map<std::string, std::string> files_;
+    std::set<std::string> dirs_;
 };
 
 #endif // MOCK_STORAGE_H

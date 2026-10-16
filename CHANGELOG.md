@@ -26,6 +26,16 @@ All notable changes to BayuPandu are recorded here. Versions follow
 - Simulator `--trace FILE`: the replay's climb from the log next to the vario
   filter's, as 10 Hz CSV, for checking and tuning the filter.
 
+- IGC flight log on the microSD card, with no buttons to press: it starts at
+  takeoff with the minute before it included, writes a record a second, and
+  closes a minute after landing. Pilot and glider for the header come from
+  `pilot.txt` on the card. The Status page shows READY, REC with the time
+  recording, NO CARD or WRITE FAILED. See `documentation/flight-log.md`.
+- SD card driver for the device (`SdStorage`, sharing the display's SPI bus);
+  each log gets the device's own 3-character id from its chip.
+- Simulator: replays log to `firmware/sim/flights/` (`--card DIR` for another
+  folder), and the replay's GPS carries the date from the IGC header.
+
 ### Changed
 - The firmware targets the ESP32-S3 (`pio run -e esp32s3`, any S3 board)
   instead of the ESP32-C3, whose pins could not fit the parts list. The C3 and

@@ -8,3 +8,7 @@ project-overview.md
 # Impeccable build state and review captures (regenerable, local only)
 .impeccable/build/
 .impeccable/review/
+
+# Simulator flight logs and pilot details (the simulated SD card)
+firmware/sim/flights/
+firmware/sim/pilot.txt

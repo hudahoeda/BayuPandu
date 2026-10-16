@@ -21,6 +21,8 @@ public:
     virtual bool writeFile(const char* path, const char* buffer) = 0;
     virtual bool appendFile(const char* path, const char* buffer) = 0;
     virtual bool deleteFile(const char* path) = 0;
+    // Creates a directory; true if it exists afterwards.
+    virtual bool makeDir(const char* path) = 0;
 };
 
 #endif // ISTORAGE_H

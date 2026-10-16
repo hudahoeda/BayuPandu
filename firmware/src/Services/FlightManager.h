@@ -68,6 +68,7 @@ public:
     // barometer and GPS answers come from the replay.
     SelfTestResult runSelfTest();
     SimulationService& getSimulationService() { return simulationService; }
+    FlightLogger& getFlightLogger() { return flightLogger; }
     // Keeps the vario quiet while the UI plays the startup chime.
     void setVarioMuted(bool muted) { variometerService.setMuted(muted); }
 

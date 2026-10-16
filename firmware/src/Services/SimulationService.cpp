@@ -35,6 +35,9 @@ bool SimulationService::initialize(const std::string& igcFilePath) {
         simulatedGPSData.satellites = firstRecord.numSatellites; // Use 'satellites' as per GPSData struct
         simulatedGPSData.hdop = firstRecord.hdop;
         simulatedGPSData.timestamp = firstRecord.timestamp;
+        simulatedGPSData.year = igcParser.getYear();
+        simulatedGPSData.month = igcParser.getMonth();
+        simulatedGPSData.day = igcParser.getDay();
     }
     return simulationActive;
 }

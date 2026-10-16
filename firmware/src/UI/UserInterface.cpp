@@ -720,7 +720,23 @@ void UserInterface::updateStatusPage(const FlightData& data) {
     std::snprintf(buf, sizeof(buf), "%d%%   %.2f V", battery.percentage, battery.voltage);
     setText(batteryRow.value, buf);
 
-    setText(logRow.value, t.logNotBuilt);
+    FlightLogger& logger = flightManager.getFlightLogger();
+    switch (logger.getStatus()) {
+        case FlightLogger::Status::NoCard: setText(logRow.value, t.logNoCard); break;
+        case FlightLogger::Status::Ready: setText(logRow.value, t.logReady); break;
+        case FlightLogger::Status::WriteFailed: setText(logRow.value, t.logFailed); break;
+        case FlightLogger::Status::Recording: {
+            uint32_t s = logger.getRecordingSeconds(arduino.millis());
+            if (s < 3600) {
+                std::snprintf(buf, sizeof(buf), "%s  %u:%02u", t.logRecording, (unsigned)(s / 60), (unsigned)(s % 60));
+            } else {
+                std::snprintf(buf, sizeof(buf), "%s  %u:%02u:%02u", t.logRecording, (unsigned)(s / 3600),
+                              (unsigned)(s / 60 % 60), (unsigned)(s % 60));
+            }
+            setText(logRow.value, buf);
+            break;
+        }
+    }
     setText(replayRow.value, flightManager.isSimulationActive() ? t.on : t.off);
 }
 

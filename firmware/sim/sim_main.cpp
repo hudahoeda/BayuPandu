@@ -25,7 +25,6 @@
 #include "HAL/GPSImpl.h"
 #include "HAL/IMUImpl.h"
 #include "HAL/IPower.h"
-#include "HAL/StorageImpl.h"
 #include "Services/ConfigService.h"
 #include "Services/FlightManager.h"
 #include "Services/GPSService.h"
@@ -38,6 +37,7 @@
 #include "config.h"
 #include "png_writer.h"
 #include "sim_audio.h"
+#include "sim_storage.h"
 
 static constexpr int kWidth = 240;
 static constexpr int kHeight = 320;
@@ -133,13 +133,15 @@ static bool savePng(const std::string& path) {
 // Firmware wiring (mirrors setup() in src/main.cpp)
 
 struct Firmware {
+    explicit Firmware(const std::string& card) : storage(card) {}
+
     SimArduino arduino;
     BarometerImpl barometer;
     SimAudio audio;
     GPSImpl gps;
     IMUImpl imu;
     SimPower power;
-    StorageImpl storage;
+    SimStorage storage;  // the SD card, a folder
 
     ConfigService* configService = nullptr;
     VariometerService* variometerService = nullptr;
@@ -161,6 +163,7 @@ struct Firmware {
     }
 
     void setup() {
+        storage.initialize();
         configService = new ConfigService(storage);
         variometerService = new VariometerService(barometer, audio, arduino);
         gpsService = new GPSService(gps);
@@ -176,6 +179,7 @@ struct Firmware {
         userInterface = new UserInterface(*flightManager, *configService, arduino,
                                           *LVGLInit::inputManager);
         flightManager->setUserInterface(userInterface);
+        flightManager->getFlightLogger().setDevice("SIM", "BayuPandu simulator");
         userInterface->setAudio(&audio);
         LVGLInit::setUserInterface(userInterface);
         flightManager->initialize();
@@ -486,6 +490,7 @@ int main(int argc, char** argv) {
     std::string bootDir;
     std::string chimeDir;
     std::string tracePath;
+    std::string cardDir;
     bool mute = false;
     double atSeconds = 60.0;
     std::string fromText;
@@ -503,6 +508,7 @@ int main(int argc, char** argv) {
         else if (arg == "--boot-frames") bootDir = next();
         else if (arg == "--export-chime") chimeDir = next();
         else if (arg == "--trace") tracePath = next();
+        else if (arg == "--card") cardDir = next();
         else if (arg == "--mute") mute = true;
         else if (arg == "--at") atSeconds = std::atof(next());
         else if (arg == "--speed") speed = std::atof(next());
@@ -526,6 +532,9 @@ int main(int argc, char** argv) {
                       "--no-gps (fix lost), --gps-silent (module not answering), --no-data and\n"
                       "--battery start with that fault; in the window,\n"
                       "G, D and B toggle them. --shots also captures each warning state.\n"
+                      "--card DIR is the simulated SD card: flight logs go to DIR/flights and the\n"
+                      "header's pilot and glider come from DIR/pilot.txt (default: the sim folder;\n"
+                      "headless runs use a temporary card unless --card is given).\n"
                       "--trace FILE writes the replay's climb, raw and through the vario filter, as CSV.\n"
                       "--boot-frames DIR writes the boot sequence as 25 fps PNG frames.\n"
                       "--export-chime DIR writes the startup chime as .mid and .wav; --mute silences the window.");
@@ -539,7 +548,12 @@ int main(int argc, char** argv) {
         return exportChime(chimeDir);
     }
 
-    Firmware fw;
+    bool headless = !shotsDir.empty() || !bootDir.empty() || !tracePath.empty();
+    if (cardDir.empty()) {
+        cardDir = headless ? (std::filesystem::temp_directory_path() / "bayupandu-card").string()
+                           : BAYUPANDU_SIM_CARD;
+    }
+    Firmware fw(cardDir);
     fw.setup();
     fw.configService->getConfig().language = language;
 
@@ -567,6 +581,7 @@ int main(int argc, char** argv) {
     fw.sim().setBaroLost(noData);
     fw.sim().setGpsSilent(gpsSilent);
     fw.setBattery(battery);
+    std::printf("Flight logs go to %s/flights\n", cardDir.c_str());
     std::printf("Replaying %s from +%ld s for %s, looping\n", igcPath.c_str(), fromSec,
                 lengthSec > 0 ? (std::to_string(lengthSec) + " s").c_str() : "the whole flight");
 
