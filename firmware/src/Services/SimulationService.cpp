@@ -29,7 +29,7 @@ bool SimulationService::initialize(const std::string& igcFilePath) {
         simulatedGPSData.longitude = firstRecord.longitude;
         simulatedGPSData.altitude = firstRecord.gpsAltitude;
         simulatedGPSData.hasValidFix = true; // Assume valid fix for simulation
-        simulatedBaroAltitude = firstRecord.baroAltitude;
+        simulatedBaroAltitude = firstRecord.smoothAltitude;
         simulatedGPSData.speed = firstRecord.speed;
         simulatedGPSData.heading = firstRecord.heading;
         simulatedGPSData.satellites = firstRecord.numSatellites; // Use 'satellites' as per GPSData struct
@@ -115,14 +115,16 @@ void SimulationService::interpolateData(const IGCRecord& record1, const IGCRecor
     // Interpolate GPS altitude
     float interpolatedGpsAltitude = record1.gpsAltitude + (record2.gpsAltitude - record1.gpsAltitude) * factor;
     
-    // Interpolate barometric altitude
-    float interpolatedBaroAltitude = record1.baroAltitude + (record2.baroAltitude - record1.baroAltitude) * factor;
-    
-    // Climb comes pre-smoothed from the parser; differencing interpolated altitudes
-    // here would only reproduce the log's 1 m quantisation.
+    // Barometric altitude as a cubic Hermite curve through the smoothed fixes, with
+    // the smoothed climb as its slope. A straight line between fixes logged in whole
+    // metres would hand the vario filter a climb that jumps every second.
+    float t = factor, t2 = t * t, t3 = t2 * t;
+    float span = timeDiff / 1000.0f;
+    simulatedBaroAltitude = (2 * t3 - 3 * t2 + 1) * record1.smoothAltitude +
+                            (t3 - 2 * t2 + t) * span * record1.climbRate +
+                            (-2 * t3 + 3 * t2) * record2.smoothAltitude +
+                            (t3 - t2) * span * record2.climbRate;
     simulatedVerticalSpeed = record1.climbRate + (record2.climbRate - record1.climbRate) * factor;
-
-    simulatedBaroAltitude = interpolatedBaroAltitude;
     simulatedGPSData.altitude = interpolatedGpsAltitude;
 
     // Update GPS data fields. Track is the segment's own bearing; interpolating

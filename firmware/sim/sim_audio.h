@@ -5,6 +5,7 @@
 
 #include <SDL.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -14,7 +15,9 @@
 #include "Services/MelodyPlayer.h"
 
 // One monophonic square voice with 2 ms ramps at note start and end, so notes
-// don't click. Duration 0 means "until noTone()".
+// don't click. Duration 0 means "until noTone()". The square is band-limited
+// (PolyBLEP): a naive one's harmonics above half the sample rate fold back as
+// off-key undertones, which a real piezo doesn't make.
 class SquareSynth {
 public:
     explicit SquareSynth(int sampleRate) : rate(sampleRate) {}
@@ -32,14 +35,30 @@ public:
             gain += gain < target ? ramp : (gain > target ? -ramp : 0.0f);
             gain = gain < 0 ? 0 : (gain > 1 ? 1 : gain);
             if (samplesLeft > 0) samplesLeft--;
-            phase += freq / rate;
+            const float dt = freq / rate;
+            phase += dt;
             if (phase >= 1.0f) phase -= 1.0f;
-            float square = phase < 0.5f ? 1.0f : -1.0f;
+            float falling = phase + 0.5f;
+            if (falling >= 1.0f) falling -= 1.0f;
+            float square = (phase < 0.5f ? 1.0f : -1.0f) + blep(phase, dt) - blep(falling, dt);
             out[i] = static_cast<int16_t>(square * gain * kLevel * 32767.0f);
         }
     }
 
 private:
+    // Smooths the step at phase 0 over one sample either side.
+    static float blep(float t, float dt) {
+        if (t < dt) {
+            t /= dt;
+            return t + t - t * t - 1.0f;
+        }
+        if (t > 1.0f - dt) {
+            t = (t - 1.0f) / dt;
+            return t * t + t + t + 1.0f;
+        }
+        return 0.0f;
+    }
+
     static constexpr float kLevel = 0.18f;  // a square wave is loud; keep headroom
     int rate;
     float freq = 0, phase = 0, gain = 0;
@@ -48,7 +67,7 @@ private:
 
 class SimAudio : public IAudio {
 public:
-    static constexpr int kRate = 22050;
+    static constexpr int kRate = 44100;
 
     // Opens the sound device; without one (headless runs, no audio) it stays silent.
     bool open() {

@@ -272,6 +272,28 @@ static int runBootFrames(Firmware& fw, const std::string& dir) {
     return 0;
 }
 
+// Writes the replay at 10 Hz as CSV: the log's own climb next to what the vario
+// filter makes of it, for checking and tuning the filter against real flights.
+static int runTrace(Firmware& fw, const std::string& path, long lengthSec) {
+    std::ofstream out(path);
+    if (!out) {
+        std::fprintf(stderr, "failed to write %s\n", path.c_str());
+        return 1;
+    }
+    out << "t_s,log_climb_ms,vario_climb_ms,replay_alt_m,vario_alt_m\n";
+    out.setf(std::ios::fixed);
+    out.precision(3);
+    for (long tick = 0; tick < lengthSec * 10; tick++) {
+        runFor(fw, 100);
+        const FlightData& d = fw.flightManager->getFusedFlightData();
+        SimulationService& sim = fw.sim();
+        out << tick / 10.0 << ',' << sim.getVerticalSpeed() << ',' << d.verticalSpeed << ','
+            << sim.getBarometricAltitude() << ',' << d.altitude << '\n';
+    }
+    std::printf("wrote %s\n", path.c_str());
+    return 0;
+}
+
 static int runHeadless(Firmware& fw, const std::string& dir, double atSeconds) {
     // The boot sign with every check shown, during its hold.
     runFor(fw, 2100);
@@ -463,6 +485,7 @@ int main(int argc, char** argv) {
     std::string shotsDir;
     std::string bootDir;
     std::string chimeDir;
+    std::string tracePath;
     bool mute = false;
     double atSeconds = 60.0;
     std::string fromText;
@@ -479,6 +502,7 @@ int main(int argc, char** argv) {
         if (arg == "--shots") shotsDir = next();
         else if (arg == "--boot-frames") bootDir = next();
         else if (arg == "--export-chime") chimeDir = next();
+        else if (arg == "--trace") tracePath = next();
         else if (arg == "--mute") mute = true;
         else if (arg == "--at") atSeconds = std::atof(next());
         else if (arg == "--speed") speed = std::atof(next());
@@ -502,6 +526,7 @@ int main(int argc, char** argv) {
                       "--no-gps (fix lost), --gps-silent (module not answering), --no-data and\n"
                       "--battery start with that fault; in the window,\n"
                       "G, D and B toggle them. --shots also captures each warning state.\n"
+                      "--trace FILE writes the replay's climb, raw and through the vario filter, as CSV.\n"
                       "--boot-frames DIR writes the boot sequence as 25 fps PNG frames.\n"
                       "--export-chime DIR writes the startup chime as .mid and .wav; --mute silences the window.");
             return 0;
@@ -550,6 +575,7 @@ int main(int argc, char** argv) {
         if (!dir.empty()) std::filesystem::create_directories(dir, ec);
     }
     if (!bootDir.empty()) return runBootFrames(fw, bootDir);
+    if (!tracePath.empty()) return runTrace(fw, tracePath, lengthSec > 0 ? lengthSec : 180);
     return shotsDir.empty() ? runInteractive(fw, speed, scale, mute)
                             : runHeadless(fw, shotsDir, atSeconds);
 }

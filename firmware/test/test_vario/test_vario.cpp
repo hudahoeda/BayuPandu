@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <cmath>
+#include <functional>
 #include <random>
 #include "Services/VarioFilter.h"
 #include "Services/VariometerService.h"
@@ -203,6 +204,56 @@ TEST_F(VariometerServiceTest, BarometerFailureDropsDataAndSilences) {
     vario.update();
     EXPECT_FALSE(vario.hasData());
     EXPECT_FALSE(audio.isToneActive());
+}
+
+// Beeps heard over `seconds` of steady flight at `vs`, after a settling flight.
+static int countBeeps(MockAudio& audio, const std::function<void(float)>& flyFor, float seconds) {
+    int before = audio.getToneCallCount();
+    flyFor(seconds);
+    return audio.getToneCallCount() - before;
+}
+
+TEST_F(VariometerServiceTest, ClimbBeepsComeFasterInStrongerLift) {
+    float altitude = 1000.0f;
+    auto at = [&](float vs) { return [&, vs](float s) { fly(altitude, vs, s); }; };
+    fly(altitude, 0.5f, 5.0f);
+    int weak = countBeeps(audio, at(0.5f), 10.0f);
+    fly(altitude, 5.0f, 5.0f);
+    int strong = countBeeps(audio, at(5.0f), 10.0f);
+    // About 2 a second at 0.5 m/s and 8 a second at 5 m/s.
+    EXPECT_NEAR(weak, 20, 3);
+    EXPECT_NEAR(strong, 79, 6);
+}
+
+TEST_F(VariometerServiceTest, EachBeepSoundsHalfItsCycle) {
+    float altitude = 1000.0f;
+    fly(altitude, 2.0f, 5.0f);
+    auto beep = audio.getLastTone();
+    EXPECT_EQ(beep.duration, VariometerService::beepPeriodMs(2.0f) / 2);
+    EXPECT_GT(beep.duration, 0u);
+}
+
+TEST_F(VariometerServiceTest, SinkAlarmIsOneSteadyTone) {
+    float altitude = 1000.0f;
+    fly(altitude, -4.0f, 3.0f);  // the filter passes -2.5 on the way down
+    int before = audio.getToneCallCount();
+    fly(altitude, -4.0f, 5.0f);
+    EXPECT_LE(audio.getToneCallCount() - before, 1);
+    EXPECT_EQ(audio.getLastTone().duration, 0u);
+    EXPECT_TRUE(audio.isToneActive());
+    // Back to a normal glide: the alarm stops.
+    fly(altitude, -1.0f, 3.0f);
+    EXPECT_FALSE(audio.isToneActive());
+}
+
+TEST_F(VariometerServiceTest, MutedVarioStaysSilent) {
+    vario.setMuted(true);
+    float altitude = 1000.0f;
+    fly(altitude, 3.0f, 5.0f);
+    EXPECT_EQ(audio.getToneCallCount(), 0);
+    vario.setMuted(false);
+    fly(altitude, 3.0f, 0.1f);
+    EXPECT_GT(audio.getToneCallCount(), 0);
 }
 
 int main(int argc, char **argv) {

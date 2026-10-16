@@ -11,6 +11,7 @@
 #include "Services/FlightLogger.h"
 #include "Services/SystemStateHandlers.h"
 #include "Services/SimulationService.h" // Include SimulationService
+#include "Services/ReplayBarometer.h"
 #include "Services/FlightStats.h"
 #include "HAL/IArduino.h"
 #include <memory>
@@ -88,6 +89,7 @@ private:
     HealthMonitor healthMonitor;
     FlightLogger flightLogger;
     SimulationService simulationService; // Add SimulationService instance
+    ReplayBarometer replayBarometer{simulationService};  // feeds the replay to the vario
     FlightStats flightStats;
     
     // State management

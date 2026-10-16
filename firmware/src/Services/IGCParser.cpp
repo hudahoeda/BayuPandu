@@ -52,6 +52,17 @@ void IGCParser::deriveMotion() {
             float dt = (records[hi].timestamp - records[lo].timestamp) / 1000.0f;
             records[i].climbRate = (records[hi].baroAltitude - records[lo].baroAltitude) / dt;
         }
+        // Mean altitude of the window, moved along the window's climb from the
+        // window's mean time to this fix's: at the ends of the log the window is
+        // one-sided, and its plain mean belongs to a different moment.
+        double sumAlt = 0.0, sumT = 0.0;
+        for (size_t k = lo; k <= hi; k++) {
+            sumAlt += records[k].baroAltitude;
+            sumT += (records[k].timestamp - records[lo].timestamp) / 1000.0;
+        }
+        size_t count = hi - lo + 1;
+        double offsetS = (records[i].timestamp - records[lo].timestamp) / 1000.0 - sumT / count;
+        records[i].smoothAltitude = static_cast<float>(sumAlt / count + records[i].climbRate * offsetS);
     }
 }
 
@@ -111,6 +122,7 @@ bool IGCParser::parseBRecord(const std::string& line, IGCRecord& record) {
         record.speed = 0.0f;   // derived in deriveMotion()
         record.heading = 0.0f;
         record.climbRate = 0.0f;
+        record.smoothAltitude = record.baroAltitude;
         record.numSatellites = 0;
         record.hdop = 99.9f;
 

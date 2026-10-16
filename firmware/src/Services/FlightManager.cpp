@@ -49,14 +49,16 @@ void FlightManager::update() {
     if (simulationActiveFlag) {
         simulationService.update(); // Update simulation state
 
-        // Create a FlightData object from simulated data
+        // Altitude and climb come through the real vario filter, which reads the
+        // replay through replayBarometer; only GPS and attitude bypass it.
+        variometerService.update();
         FlightData simulatedData;
-        simulatedData.altitude = simulationService.getBarometricAltitude();
-        simulatedData.verticalSpeed = simulationService.getVerticalSpeed();
+        simulatedData.altitude = variometerService.getAltitude();
+        simulatedData.verticalSpeed = variometerService.getVerticalSpeed();
         simulatedData.gpsData = simulationService.getGPSData();
         simulatedData.attitude = simulationService.getAttitudeData();
         simulatedData.timestamp = arduino.millis(); // Use current simulation time
-        simulatedData.isValid = simulationService.hasBaroData();
+        simulatedData.isValid = variometerService.hasData();
         
         dataFusion.setFusedFlightData(simulatedData);
 
@@ -181,6 +183,7 @@ SystemStateHandler* FlightManager::getStateHandler(SystemState state) {
 void FlightManager::enableSimulation(const std::string& igcFilePath) {
     if (simulationService.initialize(igcFilePath)) {
         simulationActiveFlag = true;
+        variometerService.setReplaySource(&replayBarometer);
         flightStats.reset();
     } else {
         if (userInterface) {
@@ -191,6 +194,7 @@ void FlightManager::enableSimulation(const std::string& igcFilePath) {
 
 void FlightManager::disableSimulation() {
     simulationActiveFlag = false;
+    variometerService.setReplaySource(nullptr);
 }
 
 bool FlightManager::isSimulationActive() const {
@@ -230,13 +234,13 @@ void FlightManager::updateAlerts() {
 SelfTestResult FlightManager::runSelfTest() {
     SelfTestResult result;
     GPSData gps;
+    // During a replay the vario already reads the replay barometer.
+    variometerService.update();
+    result.barometerOk = variometerService.hasData();
     if (simulationActiveFlag) {
-        result.barometerOk = simulationService.hasBaroData();
         result.gpsResponding = !simulationService.isGpsSilent();
         gps = simulationService.getGPSData();
     } else {
-        variometerService.update();
-        result.barometerOk = variometerService.hasData();
         gpsService.update();
         result.gpsResponding = gpsService.isResponding();
         gps = gpsService.getGPSData();

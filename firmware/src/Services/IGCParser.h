@@ -14,6 +14,7 @@ struct IGCRecord {
     float speed;        // m/s (GPS ground speed), derived from consecutive fixes
     float heading;      // degrees (GPS track angle), derived from consecutive fixes
     float climbRate;    // m/s, baro altitude change smoothed over a few records
+    float smoothAltitude; // m, baro altitude averaged over the same window
     uint8_t numSatellites;
     float hdop;         // horizontal dilution of precision
 };

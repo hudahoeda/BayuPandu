@@ -14,10 +14,11 @@ public:
     // Returns simulated GPS data.
     GPSData getGPSData() const;
 
-    // Returns simulated barometric altitude.
+    // Barometric altitude, smooth between fixes: what a barometer would have
+    // measured, before its own noise (ReplayBarometer adds that).
     float getBarometricAltitude() const;
 
-    // Returns simulated vertical speed.
+    // The log's own climb rate, for comparing with what the vario filter makes of it.
     float getVerticalSpeed() const;
 
     // Returns simulated IMU data.
@@ -59,6 +60,4 @@ private:
 
     // Interpolates data between two IGC records based on current simulation time.
     void interpolateData(const IGCRecord& record1, const IGCRecord& record2, uint32_t currentTimeMillis);
-    
-    // Calculates vertical speed from altitude changes.
 };

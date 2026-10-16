@@ -23,11 +23,24 @@ All notable changes to BayuPandu are recorded here. Versions follow
   console pin, or if two functions share one.
 - Simulator: sound through SDL (`--mute` to silence), `--export-chime DIR`,
   `--boot-frames DIR` and `--gps-silent`; `--shots` also saves the boot sign.
+- Simulator `--trace FILE`: the replay's climb from the log next to the vario
+  filter's, as 10 Hz CSV, for checking and tuning the filter.
 
 ### Changed
 - The firmware targets the ESP32-S3 (`pio run -e esp32s3`, any S3 board)
   instead of the ESP32-C3, whose pins could not fit the parts list. The C3 and
   `picsimlab` envs are gone, and `pio run` builds the S3 by default.
+- A replay now goes through the real vario: a replay barometer turns the log
+  into pressure with MS5611-like noise and feeds `VariometerService`, so the
+  climb, altitude, vario tone and BARO self-test in the simulator are what the
+  device would show. Between fixes the altitude follows a smooth curve instead
+  of the log's whole-metre steps.
+- The vario sounds like an XC vario: in lift, beeps that rise in pitch and
+  quicken with the climb (about 2 a second at 0.5 m/s, 8 at 5 m/s); in sink
+  past -2.5 m/s, one steady low tone. It used to be a single continuous tone.
+- The simulator's buzzer is band-limited (PolyBLEP, 44.1 kHz): the plain square
+  wave folded its high harmonics back as a faint off-key undertone under each
+  beep. The chime `.wav` files are rendered again with it.
 - A replay no longer raises a yellow "SIMULATION ACTIVE" footer; yellow is kept
   for trouble.
 
