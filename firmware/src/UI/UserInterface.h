@@ -8,6 +8,8 @@
 #include "UI/LVGLInit.h"
 #include "UI/UiStrings.h"
 #include "UI/BootScreen.h"
+#include "Services/MelodyPlayer.h"
+#include "HAL/IAudio.h"
 #include "lvgl.h"
 
 enum class DisplayScreen {
@@ -44,6 +46,9 @@ public:
     // A transient message from the system, shown as a yellow sign in the footer.
     void showAlert(const char* message, uint16_t durationMs = 3000);
     void clearAlert();
+
+    // The buzzer, for the startup chime. Without it the boot sign is silent.
+    void setAudio(IAudio* audio);
 
 private:
     static constexpr int kPageCount = 5;          // pages UP/DOWN cycle through
@@ -121,6 +126,7 @@ private:
     // so the two never share the LVGL heap for long.
     bool booting = true;
     BootScreen* boot = nullptr;
+    MelodyPlayer* chime = nullptr;
     void updateBoot();
     void finishBoot();
 

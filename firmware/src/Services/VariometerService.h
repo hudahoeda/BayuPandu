@@ -16,6 +16,8 @@ public:
     float getAltitude() const;
     // True once the filter has a reading and the barometer has not failed since.
     bool hasData() const;
+    // Silences the climb and sink tones, e.g. while the startup chime plays.
+    void setMuted(bool muted);
 
     // Climb tone above this rate, sink alarm below the other (m/s).
     static constexpr float kClimbToneThreshold = 0.2f;
@@ -31,4 +33,5 @@ private:
     VarioFilter filter;
     uint32_t lastSampleMs;
     bool lastReadOk;
+    bool muted = false;
 };

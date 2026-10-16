@@ -18,7 +18,7 @@ void VariometerService::update()
         // Keep the last estimate but stop claiming it is live; the filter
         // restarts on the next good reading if the gap grew too long.
         lastReadOk = false;
-        audio.noTone();
+        if (!muted) audio.noTone();
         return;
     }
 
@@ -31,8 +31,15 @@ void VariometerService::update()
     updateAudio();
 }
 
+void VariometerService::setMuted(bool value)
+{
+    if (value && !muted) audio.noTone();
+    muted = value;
+}
+
 void VariometerService::updateAudio()
 {
+    if (muted) return;
     float vs = filter.verticalSpeed();
     if (vs >= kClimbToneThreshold)
     {

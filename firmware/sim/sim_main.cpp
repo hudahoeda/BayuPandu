@@ -21,7 +21,6 @@
 
 #include "Arduino.h"
 #include "HAL/IArduino.h"
-#include "HAL/AudioImpl.h"
 #include "HAL/BarometerImpl.h"
 #include "HAL/GPSImpl.h"
 #include "HAL/IMUImpl.h"
@@ -33,10 +32,12 @@
 #include "Services/IMUService.h"
 #include "Services/PowerService.h"
 #include "Services/VariometerService.h"
+#include "UI/BootChime.h"
 #include "UI/LVGLInit.h"
 #include "UI/UserInterface.h"
 #include "config.h"
 #include "png_writer.h"
+#include "sim_audio.h"
 
 static constexpr int kWidth = 240;
 static constexpr int kHeight = 320;
@@ -134,7 +135,7 @@ static bool savePng(const std::string& path) {
 struct Firmware {
     SimArduino arduino;
     BarometerImpl barometer;
-    AudioImpl audio;
+    SimAudio audio;
     GPSImpl gps;
     IMUImpl imu;
     SimPower power;
@@ -175,6 +176,7 @@ struct Firmware {
         userInterface = new UserInterface(*flightManager, *configService, arduino,
                                           *LVGLInit::inputManager);
         flightManager->setUserInterface(userInterface);
+        userInterface->setAudio(&audio);
         LVGLInit::setUserInterface(userInterface);
         flightManager->initialize();
         userInterface->initialize();
@@ -339,8 +341,29 @@ static int runHeadless(Firmware& fw, const std::string& dir, double atSeconds) {
     return 0;
 }
 
-static int runInteractive(Firmware& fw, double speed, int scale) {
+// Writes the startup chime as MIDI and WAV: every check passing, and with the
+// barometer failing, from the same composition the firmware plays.
+static int exportChime(const std::string& dir) {
+    const struct { const char* name; bool passed[BootTiming::kChecks]; } variants[] = {
+        {"boot-chime", {true, true, true, true}},
+        {"boot-chime-fault", {false, true, true, true}},
+    };
+    for (const auto& v : variants) {
+        Note notes[MelodyPlayer::kMaxNotes];
+        int n = BootChime::compose(v.passed, notes, MelodyPlayer::kMaxNotes);
+        std::string base = dir + "/" + v.name;
+        if (!writeMidi(base + ".mid", notes, n) || !writeWav(base + ".wav", notes, n)) {
+            std::fprintf(stderr, "failed to write %s.mid/.wav\n", base.c_str());
+            return 1;
+        }
+        std::printf("wrote %s.mid and %s.wav (%d notes)\n", base.c_str(), base.c_str(), n);
+    }
+    return 0;
+}
+
+static int runInteractive(Firmware& fw, double speed, int scale, bool mute) {
     SDL_Init(SDL_INIT_VIDEO);
+    if (!mute && !fw.audio.open()) std::puts("no sound device; running silent");
     SDL_Window* window = SDL_CreateWindow("BayuPandu simulator", SDL_WINDOWPOS_CENTERED,
                                           SDL_WINDOWPOS_CENTERED, kWidth * scale,
                                           kHeight * scale, 0);
@@ -439,6 +462,8 @@ int main(int argc, char** argv) {
     std::string igcPath;
     std::string shotsDir;
     std::string bootDir;
+    std::string chimeDir;
+    bool mute = false;
     double atSeconds = 60.0;
     std::string fromText;
     long lengthSec = 180;
@@ -453,6 +478,8 @@ int main(int argc, char** argv) {
         auto next = [&]() -> const char* { return i + 1 < argc ? argv[++i] : ""; };
         if (arg == "--shots") shotsDir = next();
         else if (arg == "--boot-frames") bootDir = next();
+        else if (arg == "--export-chime") chimeDir = next();
+        else if (arg == "--mute") mute = true;
         else if (arg == "--at") atSeconds = std::atof(next());
         else if (arg == "--speed") speed = std::atof(next());
         else if (arg == "--scale") scale = std::atoi(next());
@@ -475,9 +502,16 @@ int main(int argc, char** argv) {
                       "--no-gps (fix lost), --gps-silent (module not answering), --no-data and\n"
                       "--battery start with that fault; in the window,\n"
                       "G, D and B toggle them. --shots also captures each warning state.\n"
-                      "--boot-frames DIR writes the boot sequence as 25 fps PNG frames.");
+                      "--boot-frames DIR writes the boot sequence as 25 fps PNG frames.\n"
+                      "--export-chime DIR writes the startup chime as .mid and .wav; --mute silences the window.");
             return 0;
         } else igcPath = arg;
+    }
+
+    if (!chimeDir.empty()) {
+        std::error_code ec;
+        std::filesystem::create_directories(chimeDir, ec);
+        return exportChime(chimeDir);
     }
 
     Firmware fw;
@@ -516,6 +550,6 @@ int main(int argc, char** argv) {
         if (!dir.empty()) std::filesystem::create_directories(dir, ec);
     }
     if (!bootDir.empty()) return runBootFrames(fw, bootDir);
-    return shotsDir.empty() ? runInteractive(fw, speed, scale)
+    return shotsDir.empty() ? runInteractive(fw, speed, scale, mute)
                             : runHeadless(fw, shotsDir, atSeconds);
 }

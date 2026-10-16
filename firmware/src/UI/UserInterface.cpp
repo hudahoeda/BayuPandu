@@ -1,6 +1,7 @@
 #include "UserInterface.h"
 #include "UI/SignGlyph.h"
 #include "UI/SignPalette.h"
+#include "UI/BootChime.h"
 #include "version.h"
 #include <cmath>
 #include <cstdio>
@@ -106,19 +107,38 @@ void UserInterface::initialize() {
     lastUpdate = arduino.millis();
 }
 
+void UserInterface::setAudio(IAudio* audio) {
+    delete chime;
+    chime = audio ? new MelodyPlayer(*audio) : nullptr;
+}
+
 void UserInterface::updateBoot() {
     uint32_t now = arduino.millis();
     if (!boot) {
-        boot = new BootScreen(text(), flightManager.runSelfTest(), now);
+        SelfTestResult result = flightManager.runSelfTest();
+        boot = new BootScreen(text(), result, now);
         lv_scr_load(boot->screen());
+        // Volume OFF in Settings silences the chime too.
+        if (chime && configService.getConfig().audioVolume > 0.0f) {
+            bool passed[BootTiming::kChecks];
+            BootTiming::checksPassed(result, passed);
+            Note notes[MelodyPlayer::kMaxNotes];
+            int count = BootChime::compose(passed, notes, MelodyPlayer::kMaxNotes);
+            flightManager.setVarioMuted(true);
+            chime->play(notes, count, now);
+        }
     }
     bool running = boot->update(now);
+    if (chime) chime->update(now);
     LVGLInit::handler();
     if (!running) finishBoot();
 }
 
 void UserInterface::finishBoot() {
     booting = false;
+    // A skipped boot cuts the chime short; a finished one has already ended.
+    if (chime) chime->stop();
+    flightManager.setVarioMuted(false);
     // Free the boot sign before building the pages, so they are allocated into one
     // unfragmented heap. A bare screen stands in meanwhile: the active screen can't be deleted.
     lv_obj_t* placeholder = lv_obj_create(nullptr);

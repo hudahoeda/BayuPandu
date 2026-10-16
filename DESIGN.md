@@ -250,13 +250,25 @@ The startup page and the only screen that animates. A standard sign panel carryi
 **The Exact Stroke Rule.** Curved strokes on the boot art are rasterised in `BootScreen.cpp` with exact-distance coverage (each pixel takes the stroke colour in proportion to its distance from the nearest segment), because LVGL 8.3 places polygon corners on whole pixels and leaves 1 px jogs and uneven weight on gentle curves. Use LVGL polygons only for solid shapes (arrowheads, glyphs, wing cells).
 
 #### Motion grammar
-The boot sign is the system's only authored motion; times are from the first frame, constants at the top of `BootScreen.cpp`.
+The boot sign is the system's only authored motion; times are from the first frame, constants in `UI/BootTiming.h`, shared with the startup chime.
 - Ridge: present from the first frame; it is ground.
 - Wind lines: the first starts at 80 ms, each next one 90 ms later, each takes 520 ms to cross the sign, ease-out cubic.
 - Wing: appears at 300 ms, 20 px below its resting height, over the crest.
 - Results: the first row shows at 900 ms, then one every 300 ms (last at 1800 ms). Rows appear whole; only the wing moves, rising over 250 ms (ease-out cubic) after each passed result.
 - Hold: 900 ms after the last result when all passed, 2200 ms when something failed. Then a hard cut to Flight, no transition.
 - Any button skips straight to Flight. The art is redrawn only while it moves; the held frame costs nothing.
+
+#### Startup chime
+The boot sign has a sound, written as MIDI notes in `UI/BootChime.cpp` and played on the piezo by `MelodyPlayer` (one square-wave note at a time). It follows the same clock and the same pass/fail rule (`BootTiming::checksPassed`) as the rows:
+- Wind: a quick rising run, D5 E5 F#5 A5 B5 (40 ms each), as the wing appears at 300 ms.
+- Each result: a passed check is the vario's climb double-beep, 70 ms on, 40 off, 70 on, a step higher each time (D6, E6, F#6, A6), so passing sounds like climbing. A failed check is one low A4 "sink" tone, 260 ms.
+- Ready, 400 ms after the last result: rising A6 then D7 when all passed; falling F#5 then D5 when anything failed.
+- D major pentatonic set high, because a piezo is loudest and cleanest from about 1 to 3 kHz, where a vario climbs.
+- Volume OFF in Settings silences it, and the vario's own tones are muted while it plays. A skip cuts it off.
+
+**The Sound Agrees With The Sign Rule.** The chime is composed from the same check results and the same timing as the rows; a failure that shows yellow is heard low. Never let one change without the other.
+
+`bayupandu_sim --export-chime DIR` writes it as `.mid` (General MIDI square lead, 1 tick = 1 ms) and `.wav` (through the simulator's piezo-like synth); the copies in `assets/sound/` come from there.
 
 ### Navigation (buttons)
 Four hardware buttons, no touch. UP/DOWN cycle the five pages (Flight, Thermal, Navigation, Status, Settings); CANCEL returns to Flight; ENTER enters edit mode on Settings. In edit mode UP/DOWN move focus, ENTER changes the focused value, CANCEL saves and leaves. The error sign appears once when an error starts; UP, DOWN or CANCEL leaves it for Flight.

@@ -1,4 +1,5 @@
 #include "BootScreen.h"
+#include "UI/BootTiming.h"
 #include "UI/BrandMark.h"
 #include "UI/SignGlyph.h"
 #include "UI/SignPalette.h"
@@ -17,18 +18,9 @@ using namespace SignPalette;
 
 namespace {
 
-// --- Timing (ms from the first frame) -------------------------------------------
-constexpr uint32_t kWindStart = 80;       // first wind line starts drawing
-constexpr uint32_t kWindDraw = 520;       // time for one line to cross the sign
-constexpr uint32_t kWindStagger = 90;     // each line starts this much after the last
-constexpr uint32_t kWingAppear = 300;     // wing appears low over the crest as the wind comes in
-constexpr uint32_t kFirstReveal = 900;    // first check result shows
-constexpr uint32_t kRevealStep = 300;     // then one result every step
-constexpr uint32_t kLiftMs = 250;         // the wing's rise after each result
-constexpr uint32_t kHoldOk = 900;         // hold after the last result when all passed
-constexpr uint32_t kHoldWarn = 2200;      // longer when something failed
-constexpr uint32_t kLastReveal = kFirstReveal + (BootScreen::kRows - 1) * kRevealStep;
+using namespace BootTiming;
 constexpr uint32_t kAnimEnd = kLastReveal + kLiftMs;
+static_assert(BootScreen::kRows == kChecks, "one row per self-test check");
 
 // --- Geometry (screen px). Measured from the approved comp, 1086x1448 scaled to 240x320.
 constexpr float kScale = 240.0f / 1086.0f;
@@ -245,8 +237,8 @@ BootScreen::BootScreen(const UiStrings& t, const SelfTestResult& r, uint32_t now
     const char* keys[kRows] = {t.bootBaro, t.bootGps, t.bootCard, t.bootBattery};
     const char* values[kRows] = {r.barometerOk ? t.bootOk : t.bootFault, gps,
                                  r.storageOk ? t.bootOk : t.bootNoCard, battery};
-    // No fix yet is normal at switch-on, so only a silent module is a warning.
-    const bool warns[kRows] = {!r.barometerOk, !r.gpsResponding, !r.storageOk, r.batteryPercent <= 20};
+    bool passed[kRows];
+    checksPassed(r, passed);
 
     // Size the columns against every word that could appear in this language, so the
     // layout doesn't shift between a passing and a failing boot.
@@ -264,7 +256,7 @@ BootScreen::BootScreen(const UiStrings& t, const SelfTestResult& r, uint32_t now
     valueX = LV_MIN(kValueX, kRowRight - widestValue);
     keyX = LV_MIN(kKeyX, valueX - kColumnGap - widestKey);
 
-    for (int i = 0; i < kRows; i++) buildRow(i, keys[i], values[i], warns[i]);
+    for (int i = 0; i < kRows; i++) buildRow(i, keys[i], values[i], !passed[i]);
 
     lv_obj_t* caption = legendAtCap(root, &bp_text_11, 11, t.bootSkip, 0, 298, kLegend);
     lv_obj_set_style_text_letter_space(caption, 1, 0);

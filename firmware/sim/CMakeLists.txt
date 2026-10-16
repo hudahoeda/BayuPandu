@@ -29,6 +29,7 @@ target_compile_definitions(lvgl PUBLIC
 # instantiated by the firmware, and main.cpp is replaced by sim_main.cpp.
 file(GLOB FIRMWARE_SERVICES ${FIRMWARE_DIR}/src/Services/*.cpp)
 set(FIRMWARE_UI
+    ${FIRMWARE_DIR}/src/UI/BootChime.cpp
     ${FIRMWARE_DIR}/src/UI/BootScreen.cpp
     ${FIRMWARE_DIR}/src/UI/BrandMark.cpp
     ${FIRMWARE_DIR}/src/UI/InputManager.cpp

@@ -66,6 +66,7 @@ void setup() {
   configService = new ConfigService(storage);
   Serial.println("DEBUG: After ConfigService instantiation");
   Serial.println("DEBUG: Before VariometerService instantiation");
+  audio.initialize();  // buzzer pin, before anything can beep
   variometerService = new VariometerService(barometer, audio, *arduino_impl);
   Serial.println("DEBUG: After VariometerService instantiation");
   Serial.println("DEBUG: Before GPSService instantiation");
@@ -112,6 +113,7 @@ void setup() {
   // Connect UI to FlightManager
   Serial.println("DEBUG: Before flightManager->setUserInterface");
   flightManager->setUserInterface(userInterface);
+  userInterface->setAudio(&audio);
   Serial.println("DEBUG: After flightManager->setUserInterface");
   
   // Connect UI to input system
