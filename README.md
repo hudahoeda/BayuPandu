@@ -25,7 +25,7 @@ This project embraces the integrated instrument architecture, combining the scre
 *   **Intelligent UI:** Displays critical flight data including graphical variometer, altitude (barometric and GPS), ground speed, glide ratio, and battery status
 
 ### Hardware Platform
-*   **Powerful ESP32 Core:** Dual-core 240MHz processor with integrated Wi-Fi and Bluetooth
+*   **ESP32-S3 Core:** Dual-core 240MHz processor with an FPU, native USB, Wi-Fi and Bluetooth LE. Any S3 board works; see the [pinout](documentation/pinout.md)
 *   **Comprehensive Sensor Suite:** 
     *   MS5611 barometric pressure sensor for high-precision altitude measurement
     *   U-blox NEO-6M GPS module with external antenna for reliable positioning
@@ -48,7 +48,7 @@ The repository is organized into the following main directories:
 
 ## Getting Started
 
-The first step is to set up your ESP32 Development Environment and upload the initial firmware.
+The first step is to set up your ESP32 Development Environment and upload the initial firmware: `cd firmware && pio run -e esp32s3 -t upload`. Wire the parts as in [documentation/pinout.md](documentation/pinout.md).
 
 ## Bill of Materials
 

@@ -10,7 +10,7 @@
 
 ## Hardware Platform
 
-- **Microcontroller**: ESP32 DEVKIT V1 (dual-core 240MHz, Wi-Fi/Bluetooth)
+- **Microcontroller**: ESP32-S3, any board (dual-core 240MHz, FPU, native USB, Wi-Fi/BLE); pins in `documentation/pinout.md`
 - **Development Board**: 30-pin ESP32 development board
 - **Programming**: USB serial via Arduino IDE/PlatformIO
 
@@ -61,7 +61,7 @@ lib_deps =
 /home/huda/.platformio/penv/bin/pio run
 
 # Build specific environment
-/home/huda/.platformio/penv/bin/pio run -e esp32dev    # For ESP32 hardware
+/home/huda/.platformio/penv/bin/pio run -e esp32s3     # For ESP32-S3 hardware
 /home/huda/.platformio/penv/bin/pio run -e native     # For native testing with ArduinoFake
 
 # Upload to ESP32
@@ -83,7 +83,7 @@ lib_deps =
 ### Project Structure Commands
 ```bash
 # Initialize new PlatformIO project
-pio project init --board esp32dev
+pio project init --board esp32-s3-devkitc-1
 
 # Add library dependency
 pio lib install "library-name"
@@ -126,9 +126,9 @@ pio lib update
 
 ### Environment-Specific Settings
 ```ini
-[env:esp32dev]
+[env:esp32s3]
 platform = espressif32
-board = esp32dev
+board = esp32-s3-devkitc-1
 framework = arduino
 build_flags = -DLV_CONF_PATH="${PROJECT_DIR}/lv_conf.h" -std=c++14
 lib_deps = [LVGL + Arduino libraries]

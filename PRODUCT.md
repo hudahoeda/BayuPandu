@@ -31,7 +31,7 @@ A fully open, locally buildable instrument: firmware, hardware and case are open
 ## Capabilities and Constraints
 
 - Display: **240×320 portrait colour TFT (ILI9341)** for now. A sunlight-readable panel (transflective TFT or Garmin-style memory-in-pixel) may come later, so the UI must not depend on backlight brightness or subtle colours.
-- LVGL 8.3 on ESP32 (currently the ESP32-C3 target): limited RAM (LVGL heap 64 KB; one full set of pages uses about 48 KB) and bitmap fonts only, generated at fixed sizes by `firmware/tools/gen_fonts.sh`.
+- LVGL 8.3 on the ESP32-S3 (any board; pins in `documentation/pinout.md`): limited RAM (LVGL heap 64 KB; one full set of pages uses about 48 KB) and bitmap fonts only, generated at fixed sizes by `firmware/tools/gen_fonts.sh`.
 - Data available in `FlightData`: baro altitude, vertical speed, GPS position, speed, heading, satellites, HDOP, attitude, battery.
 - Undecided: final display panel; which XC navigation features to include (wind, waypoints, distance to takeoff); where the IMU fits in.
 

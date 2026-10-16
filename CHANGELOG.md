@@ -18,11 +18,16 @@ All notable changes to BayuPandu are recorded here. Versions follow
   one, then a rising (or, after a failure, falling) "ready". Written as MIDI
   notes; `assets/sound/` holds it as `.mid` and `.wav`.
 - Buzzer driver (`AudioImpl`) plays tones through the Arduino core's `tone()`.
-  It stays off on the ESP32-C3 while `PIN_BUZZER` sits on an SPI flash pin.
+- Pinout for the ESP32-S3 in `documentation/pinout.md`, with an SD card chip
+  select. `config.h` refuses to build if a pin is a strap, flash, PSRAM, USB or
+  console pin, or if two functions share one.
 - Simulator: sound through SDL (`--mute` to silence), `--export-chime DIR`,
   `--boot-frames DIR` and `--gps-silent`; `--shots` also saves the boot sign.
 
 ### Changed
+- The firmware targets the ESP32-S3 (`pio run -e esp32s3`, any S3 board)
+  instead of the ESP32-C3, whose pins could not fit the parts list. The C3 and
+  `picsimlab` envs are gone, and `pio run` builds the S3 by default.
 - A replay no longer raises a yellow "SIMULATION ACTIVE" footer; yellow is kept
   for trouble.
 

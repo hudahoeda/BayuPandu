@@ -4,7 +4,7 @@ This Bill of Materials (BOM) is based on the sourcing guide from the project ove
 
 | Component | Recommended Model | Tokopedia/Shopee Search Terms | Est. Price (IDR) | Snippet References | Notes |
 | :---- | :---- | :---- | :---- | :---- | :---- |
-| **Microcontroller** | ESP32 DEVKIT V1 (30-pin) | esp32 devkit v1, esp32 doit | Rp 60,000 \- Rp 90,000 | 22 | The 30-pin version is most common. |
+| **Microcontroller** | ESP32-S3 dev board (DevKitC-1 or clone, N8 or N16R8) | esp32 s3 devkitc, esp32-s3 n16r8 | Rp 80,000 \- Rp 150,000 | | Any ESP32-S3 board works; wiring is in [documentation/pinout.md](documentation/pinout.md). |
 | **Vario Sensor** | GY-63 (MS5611) | ms5611, gy-63 | Rp 85,000 \- Rp 150,000 | 36 | High-precision sensor for superior vario performance. |
 | **GPS Module** | GY-NEO6MV2 | gps neo-6m, neo6mv2 | Rp 40,000 \- Rp 90,000 | 14 | Look for versions with an external antenna. |
 | **Display (Option 1\)** | 2.4" Transflective TFT LCD | transflective lcd 2.4 spi | Rp 400,000 \- Rp 600,000 | 9 | Excellent sunlight readability and color. Price is an estimate based on similar international listings. |
